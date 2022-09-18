@@ -2,7 +2,7 @@
 
 - *Autor*: Markus Wieland
 - *Email*: markus.wieland@mailbox.tu-dresden.de
-- 
+
 **IMPORTANT** `git lfs pull` to get osm data for this project!
 
 ## Setup
