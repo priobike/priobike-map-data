@@ -331,6 +331,13 @@ def calculate_center_point(feature, output_feature):
                                     'PROJCS["ETRS_1989_UTM_Zone_32N",GEOGCS["GCS_ETRS_1989",DATUM["D_ETRS_1989",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",9.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]];-5120900 -9998100 450445547.391054;-100000 10000;-100000 10000;0.001;0.001;0.001;IsHighPrecision')
 
 
+def export(feature, file_name):
+    arcpy.conversion.FeaturesToJSON(feature,
+                                    get_local_file_path(file_name),
+                                    "NOT_FORMATTED", "NO_Z_VALUES", "NO_M_VALUES", "GEOJSON", "KEEP_INPUT_SR",
+                                    "USE_FIELD_NAME")
+
+
 def main():
     init_arcpy()
 
@@ -380,6 +387,8 @@ def main():
 
     calculate_center_point("accident_black_spots_decision", "accident_black_spots_points")
     create_buffer("accident_black_spots_points", "accident_black_spots", buffer_radius_decision)
+
+    export("accident_black_spots", "accident_black_spots.geojson")
 
 
 if __name__ == "__main__":

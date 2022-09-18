@@ -5,6 +5,7 @@ def main():
     init_arcpy()
     clear_database()
     import_geojson("\\data\\generated\\accidents\\accidents_total.geojson", "accidents", "POINT")
+    import_geojson("\\data\\generated\\accidents\\accidents_black_spots.geojson", "accidents_black_spots", "POLYGON")
     import_geojson("\\data\\generated\\osm\\bicycle_parking.geojson", "osm_bicycle_parking", "POINT")
     import_geojson("\\data\\generated\\osm\\bicycle_rental.geojson", "osm_bicycle_rental", "POINT")
     import_geojson("\\data\\generated\\osm\\bicycle_shop.geojson", "osm_bicycle_shop", "POINT")
