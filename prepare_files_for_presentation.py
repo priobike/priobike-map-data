@@ -6,6 +6,8 @@ def main():
     clear_database()
     import_geojson("\\data\\generated\\accidents\\accidents_total.geojson", "accidents", "POINT")
     import_geojson("\\data\\generated\\accidents\\accident_black_spots.geojson", "accidents_black_spots", "POLYGON")
+    import_geojson("\\data\\generated\\accidents\\accident_black_spots_dresden.geojson", "accidents_black_spots_dresden", "POLYGON")
+    import_geojson("\\data\\generated\\accidents\\accident_total_dresden.geojson", "accidents_black_spots_dresden", "POLYGON")
     import_geojson("\\data\\generated\\osm\\bicycle_parking.geojson", "osm_bicycle_parking", "POINT")
     import_geojson("\\data\\generated\\osm\\bicycle_rental.geojson", "osm_bicycle_rental", "POINT")
     import_geojson("\\data\\generated\\osm\\bicycle_shop.geojson", "osm_bicycle_shop", "POINT")
@@ -19,6 +21,7 @@ def main():
     import_geojson("\\data\\generated\\wfs\\construction_sides.geojson", "wfs_construction_sides", "POINT")
     import_geojson("\\data\\generated\\wfs\\stadt_rad.geojson", "wfs_stadt_rad", "POINT")
     import_geojson("\\data\\generated\\wfs\\traffic.geojson", "wfs_traffic", "POLYLINE")
+
 
 
 if __name__ == "__main__":

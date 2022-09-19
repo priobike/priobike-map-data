@@ -52,11 +52,11 @@ file_roads = "\\data\\open-street-map\\gis_osm_roads_free_1.shp"
 
 
 def set_dresden_properties():
-    global file_roads, file_boundary, total_max_x, total_max_y, total_min_x, total_min_y, increase_x, increase_y, parts_x, parts_y
+    global file_roads, file_boundary, total_max_x, total_max_y, total_min_x, total_min_y, increase_x, increase_y, parts_x, parts_y, file_total_accidents
 
     file_boundary = "\\data\\boundary\\dresden_boundary.geojson"
     file_roads = "\\data\\open-street-map-dresden\\gis_osm_roads_free_1.shp"
-
+    file_total_accidents = "\\data\\generated\\accidents\\accidents_total_dresden.geojson"
     total_max_x = 843024
     total_max_y = 5673292
     total_min_x = 820516
