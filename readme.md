@@ -40,9 +40,12 @@ Von `/data/open-street-map/` zu `/data/generated/osm`. Umgesetzt mit `export_osm
 - `generate_accident_black_spots.py` Generiere Unfallschwerpunkte
 - `prepare_files_for_presentation.py` Lade alle GeoJSON Dateien in ArcGIS
 
-## WMS Server
+## Wetter Daten
 - Deutscher Wetter Dienst
-  - https://maps.dwd.de/geoserver/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities
+  - WMS: https://maps.dwd.de/geoserver/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities
+  - WCS: https://maps.dwd.de/geoserver/wcs?SERVICE=WCS&VERSION=2.0.0&REQUEST=GetCapabilities
+  - `Deutsches Regenradar (mit time Attribut)`: https://maps.dwd.de/geoserver/dwd/wms?service=WMS&version=1.1.0&request=GetMap&layers=dwd%3ANiederschlagsradar&bbox=-543.462%2C-4808.645%2C556.538%2C-3608.645&width=703&height=768&srs=EPSG%3A1000001&styles=&format=image%2Fjpeg&time=2022-09-18T12:00:00.000Z
+
 
 ## Quellen
 
@@ -97,7 +100,6 @@ Von `/data/open-street-map/` zu `/data/generated/osm`. Umgesetzt mit `export_osm
 ### Sonstige
 - `/data/open-street-map`: OpenStreetMap Daten Hamburg
   - https://download.geofabrik.de/europe/germany/hamburg.html
-  - `/data`
 - `/data/open-street-map-dresden`: OpenStreetMap Daten Dresden: 
   - https://download.geofabrik.de/europe/germany/sachsen.html
 - `/data/generated/accidents` Unfalldaten: 

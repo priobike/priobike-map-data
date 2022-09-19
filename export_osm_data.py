@@ -31,7 +31,7 @@ def main():
     convert_osm_to_geojson("\\data\\open-street-map\\gis_osm_pois_free_1.shp", "shop_bicycle",
                            "fclass = 'bicycle_shop'", "data\\generated\\osm\\bicycle_shop.geojson")
     convert_osm_to_geojson("\\data\\open-street-map\\gis_osm_pois_a_free_1.shp", "rental_bicycle_a",
-                           "fclass = 'bicycle_shop'", "data\\generated\\osm\\bicycle_rental_polygon.geojson")
+                           "fclass = 'bicycle_rental'", "data\\generated\\osm\\bicycle_rental_polygon.geojson")
     convert_osm_to_geojson("\\data\\open-street-map\\gis_osm_pois_a_free_1.shp", "shop_bicycle_a",
                            "fclass = 'bicycle_shop'", "data\\generated\\osm\\bicycle_shop_polygon.geojson")
 

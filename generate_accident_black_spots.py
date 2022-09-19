@@ -1,5 +1,6 @@
 import datetime
 import json
+import math
 import time
 import arcpy
 import requests
@@ -43,7 +44,7 @@ mapping_roads = {
 
 buffer_radius_analysis = 5
 buffer_radius_decision = 30
-threshold = 0.75
+threshold = 6
 
 file_total_accidents = "\\data\\generated\\accidents\\accidents_total.geojson"
 file_boundary = "\\data\\boundary\\hamburg_boundary.geojson"
@@ -270,8 +271,10 @@ def calculate_missing_scores_of_road(feature, field_name):
 
 
 def calculate_score_of_area(feature, field_name):
+    max_area = buffer_radius_analysis * math.pi
     arcpy.management.CalculateField(feature, field_name, "Reclass(!SHAPE_AREA!, !score_amount!)", "PYTHON3", """def Reclass(arg, score_amount):
-            return 1 / (arg / score_amount)""", "FLOAT", "NO_ENFORCE_DOMAINS")
+            score = """ + str(max_area) + """ - (arg / score_amount)
+            return score if score > 0 else 0""", "FLOAT", "NO_ENFORCE_DOMAINS")
 
 
 def get_max_value_of_field(feature, field):
@@ -287,7 +290,7 @@ def calculate_total_score(feature, field_name):
     arcpy.management.CalculateField(feature, field_name,
                                     "Reclass(!score_road!, !score_area!, !score_vulnerability!, !score_amount!)",
                                     "PYTHON3", """def Reclass(road, area, vulnerability, amount):
-                return road * area * amount * vulnerability""", "FLOAT", "NO_ENFORCE_DOMAINS")
+                return road * area * vulnerability""", "FLOAT", "NO_ENFORCE_DOMAINS")
 
 
 def clip_to_boundary(feature_accidents, boundary, output):
@@ -332,6 +335,7 @@ def calculate_center_point(feature, output_feature):
 
 
 def export(feature, file_name):
+    log("Saving " + file_name + "... ")
     arcpy.conversion.FeaturesToJSON(feature,
                                     get_local_file_path(file_name),
                                     "NOT_FORMATTED", "NO_Z_VALUES", "NO_M_VALUES", "GEOJSON", "KEEP_INPUT_SR",
@@ -382,13 +386,13 @@ def main():
     add_field_to_table("accidents_with_all_scores", "total_score")
     calculate_total_score("accidents_with_all_scores", "total_score")
 
-    normalize_total_score("accidents_with_all_scores", "total_score")
+    #normalize_total_score("accidents_with_all_scores", "total_score")
     get_accident_black_spots("accidents_with_all_scores", "accident_black_spots_decision")
 
     calculate_center_point("accident_black_spots_decision", "accident_black_spots_points")
     create_buffer("accident_black_spots_points", "accident_black_spots", buffer_radius_decision)
 
-    export("accident_black_spots", "accident_black_spots.geojson")
+    export("accident_black_spots", "\\data\\generated\\accidents\\accident_black_spots.geojson")
 
 
 if __name__ == "__main__":
