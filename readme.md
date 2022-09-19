@@ -60,7 +60,7 @@ Von `/data/open-street-map/` zu `/data/generated/osm`. Umgesetzt mit `export_osm
   - `Lizenz`: https://www.govdata.de/dl-de/by-2-0
   - Download mit `download_wfs_sources.py`
   - `iot hamburg url`: https://iot.hamburg.de/v1.0/Things?$filter=Datastreams/properties/serviceName%20eq%20%27HH_STA_HamburgerRadzaehlnetz%27%20and%20Datastreams/properties/layerName%20eq%20%27Anzahl_Fahrraeder_Zaehlfeld_5-Min%27&$count=true&$expand=Datastreams($filter=properties/layerName%20eq%20%27Anzahl_Fahrraeder_Zaehlfeld_5-Min%27;$expand=Observations($top=10;$orderby=phenomenonTime%20desc))
-  - `GetCapabilities`: https://geodienste.hamburg.de/HH_WFS_Stadtrad?SERVICE=WFS&REQUEST=GetCapabilities
+  - `GetCapabilities`: https://geodienste.hamburg.de/HH_WFS_Harazaen?SERVICE=WFS&REQUEST=GetCapabilities
   - `GetFeature`: https://geodienste.hamburg.de/HH_WFS_Harazaen?SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature&typename=de.hh.up:zaehlstellen_daten&outputFormat=application/geo%2Bjson&srsname=EPSG:4326
   - mögliche `layerName` Werte: 
     - Anzahl_Fahrraeder_Zaehlfeld_5-Min 
