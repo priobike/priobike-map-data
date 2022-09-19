@@ -7,7 +7,7 @@ def main():
     import_geojson("\\data\\generated\\accidents\\accidents_total.geojson", "accidents", "POINT")
     import_geojson("\\data\\generated\\accidents\\accident_black_spots.geojson", "accidents_black_spots", "POLYGON")
     import_geojson("\\data\\generated\\accidents\\accident_black_spots_dresden.geojson", "accidents_black_spots_dresden", "POLYGON")
-    import_geojson("\\data\\generated\\accidents\\accident_total_dresden.geojson", "accidents_black_spots_dresden", "POLYGON")
+    import_geojson("\\data\\generated\\accidents\\accident_total_dresden.geojson", "accidents_dresden", "POLYGON")
     import_geojson("\\data\\generated\\osm\\bicycle_parking.geojson", "osm_bicycle_parking", "POINT")
     import_geojson("\\data\\generated\\osm\\bicycle_rental.geojson", "osm_bicycle_rental", "POINT")
     import_geojson("\\data\\generated\\osm\\bicycle_shop.geojson", "osm_bicycle_shop", "POINT")
