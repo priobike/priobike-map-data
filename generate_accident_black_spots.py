@@ -338,7 +338,7 @@ def export(feature, file_name):
     log("Saving " + file_name + "... ")
     arcpy.conversion.FeaturesToJSON(feature,
                                     get_local_file_path(file_name),
-                                    "NOT_FORMATTED", "NO_Z_VALUES", "NO_M_VALUES", "GEOJSON", "KEEP_INPUT_SR",
+                                    "NOT_FORMATTED", "NO_Z_VALUES", "NO_M_VALUES", "GEOJSON", "WGS84",
                                     "USE_FIELD_NAME")
 
 

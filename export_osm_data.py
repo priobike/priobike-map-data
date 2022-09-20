@@ -15,7 +15,7 @@ def convert_osm_to_geojson(local_file, feature_name, query, geo_json_file_name):
         None)
     arcpy.conversion.FeaturesToJSON(feature_name,
                                     get_local_file_path(geo_json_file_name),
-                                    "NOT_FORMATTED", "NO_Z_VALUES", "NO_M_VALUES", "GEOJSON", "KEEP_INPUT_SR",
+                                    "NOT_FORMATTED", "NO_Z_VALUES", "NO_M_VALUES", "GEOJSON", "WGS84",
                                     "USE_FIELD_NAME")
 
 
