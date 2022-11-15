@@ -348,7 +348,7 @@ def main():
     init_arcpy()
 
     # Dresden
-    set_dresden_properties()
+    # set_dresden_properties()
     # use this function to update the data sets
     # get_accidents()
 
