@@ -58,7 +58,7 @@ def set_dresden_properties():
     file_boundary = "\\data\\boundary\\dresden_boundary.geojson"
     file_roads = "\\data\\open-street-map-dresden\\gis_osm_roads_free_1.shp"
     file_total_accidents = "\\data\\generated\\accidents\\accidents_total_dresden.geojson"
-    file_output = "\\data\\generated\\accidents\\accident_black_spots_dresden.geojson"
+    file_output = "\\data\\generated\\accidents\\accident_hot_spots_dresden.geojson"
     total_max_x = 843024
     total_max_y = 5673292
     total_min_x = 820516
@@ -348,7 +348,7 @@ def main():
     init_arcpy()
 
     # Dresden
-    # set_dresden_properties()
+    set_dresden_properties()
     # use this function to update the data sets
     # get_accidents()
 
