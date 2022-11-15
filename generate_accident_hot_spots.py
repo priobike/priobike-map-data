@@ -49,7 +49,7 @@ threshold = 6
 file_total_accidents = "\\data\\generated\\accidents\\accidents_total.geojson"
 file_boundary = "\\data\\boundary\\hamburg_boundary.geojson"
 file_roads = "\\data\\open-street-map\\gis_osm_roads_free_1.shp"
-file_output = "\\data\\generated\\accidents\\accident_black_spots.geojson"
+file_output = "\\data\\generated\\accidents\\accident_hot_spots.geojson"
 
 
 def set_dresden_properties():
@@ -392,9 +392,10 @@ def main():
     get_accident_black_spots("accidents_with_all_scores", "accident_black_spots_decision")
 
     calculate_center_point("accident_black_spots_decision", "accident_black_spots_points")
-    create_buffer("accident_black_spots_points", "accident_black_spots", buffer_radius_decision)
+    # create_buffer("accident_black_spots_points", "accident_black_spots", buffer_radius_decision)
 
-    export("accident_black_spots", file_output)
+    # export("accident_black_spots", file_output)
+    export("accident_black_spots_points", file_output)
 
 
 if __name__ == "__main__":
