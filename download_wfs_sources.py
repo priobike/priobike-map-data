@@ -1,6 +1,6 @@
-import requests
 import json
-from setup import log
+
+import requests
 
 urls = {
     "bike_and_ride": "https://geodienste.hamburg.de/HH_WFS_Bike_und_Ride?SERVICE=WFS&REQUEST=GetFeature&outputFormat=application/geo%2Bjson&version=2.0.0&typeName=de.hh.up:bike_und_ride&srsname=EPSG:4326",
@@ -16,7 +16,7 @@ def main():
     for key, value in urls.items():
         r = requests.get(url=value)
         result_json = r.json()
-        log("Downloading " + key)
+        print("Downloading " + key)
         with open("data/generated/wfs/" + str(key) + ".geojson", "w") as file:
             json.dump(result_json, file)
 
