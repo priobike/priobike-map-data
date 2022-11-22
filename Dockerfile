@@ -9,5 +9,6 @@ RUN python download_wfs_sources.py
 FROM nginx AS runner
 
 WORKDIR /usr/share/nginx/html/
+COPY ./data/generated/accidents/ ./
+COPY ./data/generated/osm/ ./
 COPY --from=builder ./data/generated/wfs/ ./
-COPY ./data/generated/accidents/accident_hot_spots.geojson ./
