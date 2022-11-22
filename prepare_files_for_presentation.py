@@ -18,7 +18,7 @@ def main():
     import_geojson("\\data\\generated\\wfs\\bike_count.geojson", "wfs_bike_count", "POINT")
     import_geojson("\\data\\generated\\wfs\\bike_and_ride.geojson", "wfs_bike_and_ride", "POINT")
     import_geojson("\\data\\generated\\wfs\\bike_air_station.geojson", "wfs_bike_air_station", "POINT")
-    import_geojson("\\data\\generated\\wfs\\construction_sides.geojson", "wfs_construction_sides", "POINT")
+    import_geojson("\\data\\generated\\wfs\\construction_sites.geojson", "wfs_construction_sides", "POINT")
     import_geojson("\\data\\generated\\wfs\\stadt_rad.geojson", "wfs_stadt_rad", "POINT")
     import_geojson("\\data\\generated\\wfs\\traffic.geojson", "wfs_traffic", "POLYLINE")
 
