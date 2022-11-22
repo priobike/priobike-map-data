@@ -1,0 +1,21 @@
+name: Create and publish Docker image
+
+on:
+  push:
+    branches:
+      - main
+      - stable
+    tags:
+      - v*
+
+jobs:
+  publish:
+    uses: ./.github/workflows/publish.yaml
+    with:
+      context: .
+      registry: bikenow.vkw.tu-dresden.de
+      image: ${{ github.repository }}
+      branch: ${{ github.ref }}
+    secrets:
+      NEXUS_DOCKER_PUB_USERNAME: ${{ secrets.NEXUS_DOCKER_PUB_USERNAME }}
+      NEXUS_DOCKER_PUB_PASSWORD: ${{ secrets.NEXUS_DOCKER_PUB_PASSWORD }}

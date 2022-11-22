@@ -1,0 +1,28 @@
+name: Nightly - Create and publish Docker image
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  publish-main:
+    uses: ./.github/workflows/publish.yaml
+    with:
+      context: .
+      registry: bikenow.vkw.tu-dresden.de
+      image: ${{ github.repository }}
+      branch: main
+    secrets:
+      NEXUS_DOCKER_PUB_USERNAME: ${{ secrets.NEXUS_DOCKER_PUB_USERNAME }}
+      NEXUS_DOCKER_PUB_PASSWORD: ${{ secrets.NEXUS_DOCKER_PUB_PASSWORD }}
+
+  publish-stable:
+    uses: ./.github/workflows/publish.yaml
+    with:
+      context: .
+      registry: bikenow.vkw.tu-dresden.de
+      image: ${{ github.repository }}
+      branch: stable
+    secrets:
+      NEXUS_DOCKER_PUB_USERNAME: ${{ secrets.NEXUS_DOCKER_PUB_USERNAME }}
+      NEXUS_DOCKER_PUB_PASSWORD: ${{ secrets.NEXUS_DOCKER_PUB_PASSWORD }}
