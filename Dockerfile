@@ -1,5 +1,7 @@
 FROM python:3.9 AS builder
 
+ARG CACHE_DATE=1970-01-01
+
 COPY ./download_wfs_sources.py ./
 RUN mkdir -p /data/generated/wfs
 
