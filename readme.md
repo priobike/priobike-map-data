@@ -87,6 +87,45 @@ Von `/data/open-street-map/` zu `/data/generated/osm`. Umgesetzt mit `export_osm
   - Download mit `download_wfs_sources.py`
   - `GetCapabilities`: https://geodienste.hamburg.de/HH_WFS_Baustellen?SERVICE=WFS&REQUEST=GetCapabilities
   - `GetFeature`: https://geodienste.hamburg.de/HH_WFS_Baustellen?SERVICE=WFS&REQUEST=GetFeature&typeName=de.hh.up:tns_steckbrief_visualisierung&version=2.0.0&OUTPUTFORMAT=application/geo%2Bjson
+- `data/generated/wfs/static_green_waves`: Statische Grüne Wellen für Radfahrende (eingerichtet im Rahmen des PrioBike Projekts)
+  - Visualisierung: https://geoportal-hamburg.de/geo-online/?Map/layerIds=19969,23455&visibility=true,true&transparency=0,0&Map/center=%5B561725.5310578019,5935027.037590196%5D&Map/zoomLevel=5
+  - `Lizenz`: https://www.govdata.de/dl-de/by-2-0
+  - Download mit `download_wfs_sources.py``
+  - `GetCapabilities`: https://geodienste.hamburg.de/HH_WMS_ITS_Dienste_Hamburg?SERVICE=WMS&REQUEST=GetCapabilities
+  - `GetFeature`: https://geodienste.hamburg.de/HH_WFS_ITS_Dienste_Hamburg?SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature&typeName=de.hh.up:its_iot_registry&OUTPUTFORMAT=application/geo%2Bjson&srsname=EPSG:4326&Filter=%3Cogc:Filter%20xmlns:ogc=%22http://www.opengis.net/ogc%22%3E%3Cogc:PropertyIsEqualTo%3E%3Cogc:PropertyName%3Epurpose_id%3C/ogc:PropertyName%3E%3Cogc:Literal%3E14%3C/ogc:Literal%3E%3C/ogc:PropertyIsEqualTo%3E%3C/ogc:Filter%3E
+    - Beinhaltet einen Filter nach `purpose_id` 14 (steht für `purpose` "Multimodale Grüne Welle")
+      - Filter dekodiert:
+        ```xml
+        <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+          <ogc:PropertyIsEqualTo>
+            <ogc:PropertyName>purpose_id</ogc:PropertyName>
+            <ogc:Literal>14</ogc:Literal>
+          </ogc:PropertyIsEqualTo>
+        </ogc:Filter>
+        ```
+- `data/generated/wfs/prio_change`: Prio-Umkehr (eingerichtet im Rahmen des PrioBike Projekts)
+  - Visualisierung: https://geoportal-hamburg.de/geo-online/?Map/layerIds=19969,23454&visibility=true,true&transparency=0,0&Map/center=%5B564281.2091934407,5933408.694378249%5D&Map/zoomLevel=4
+  - `Lizenz`: https://www.govdata.de/dl-de/by-2-0
+  - Download mit `download_wfs_sources.py``
+  - `GetCapabilities`: https://geodienste.hamburg.de/HH_WMS_ITS_Dienste_Hamburg?SERVICE=WMS&REQUEST=GetCapabilities
+  - `GetFeature`: https://geodienste.hamburg.de/HH_WFS_ITS_Dienste_Hamburg?SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature&typeName=de.hh.up:its_iot_registry&OUTPUTFORMAT=application/geo%2Bjson&srsname=EPSG:4326&Filter=%3Cogc:Filter%20xmlns:ogc=%22http://www.opengis.net/ogc%22%3E%3Cogc:PropertyIsEqualTo%3E%3Cogc:PropertyName%3Epurpose_id%3C/ogc:PropertyName%3E%3Cogc:Literal%3E15%3C/ogc:Literal%3E%3C/ogc:PropertyIsEqualTo%3E%3C/ogc:Filter%3E
+    - Beinhaltet einen Filter nach `purpose_id` 15 (steht für `purpose` "Knotenspezifische LSA-Steuerung (Rad)")
+      - Filter dekodiert:
+        ```xml
+        <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+          <ogc:PropertyIsEqualTo>
+            <ogc:PropertyName>purpose_id</ogc:PropertyName>
+            <ogc:Literal>15</ogc:Literal>
+          </ogc:PropertyIsEqualTo>
+        </ogc:Filter>
+        ```
+- `data/generated/wfs/velo_routes`: Velorouten
+  - Visualisierung: https://geoportal-hamburg.de/geo-online/?Map/layerIds=19969,20295,20294,20293,20292,20291,20290,20289,20288,20287,20286,20285,20284,20283,20282&visibility=false,true,true,true,true,true,true,true,true,true,true,true,true,true,true&transparency=0,0,0,0,0,0,0,0,0,0,0,0,0,0,0&Map/center=%5B558963.6218114226,5935454.650209453%5D&Map/zoomLevel=2
+  - `Lizenz`: https://www.govdata.de/dl-de/by-2-0
+  - Download mit `download_wfs_sources.py``
+  - `GetCapabilities`: https://geodienste.hamburg.de/HH_WFS_Velorouten?SERVICE=WMS&REQUEST=GetCapabilities
+  - `GetFeature`: https://geodienste.hamburg.de/HH_WFS_Velorouten?SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature&OUTPUTFORMAT=application/geo%2Bjson&srsname=EPSG:4326&typename=de.hh.up:velorouten
+
 
 ### <a href="https://suche.transparenz.hamburg.de/">Transparenzportal Hamburg</a>
 - `data/generated/wfs/bike_air_station`: Fahrradluftstationen
