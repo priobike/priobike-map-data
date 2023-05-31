@@ -15,7 +15,7 @@ jobs:
       context: .
       registry: bikenow.vkw.tu-dresden.de
       image: ${{ github.repository }}
-      branch: ${{ github.ref }}
+      branch: ${{ github.ref_name }}
     secrets:
       NEXUS_DOCKER_PUB_USERNAME: ${{ secrets.NEXUS_DOCKER_PUB_USERNAME }}
       NEXUS_DOCKER_PUB_PASSWORD: ${{ secrets.NEXUS_DOCKER_PUB_PASSWORD }}
