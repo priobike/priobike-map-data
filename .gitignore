@@ -2,3 +2,5 @@
 /data/open-street-map-dresden
 *.lock
 __pycache__
+/data/temp
+/data/generated/osm_os
