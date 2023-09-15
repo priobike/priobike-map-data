@@ -62,6 +62,12 @@ Der Datensatz enthält das Netz der 14 Velorouten für den Alltagsradverkehr (ca
 
 **Anmerkung**: Benötigt die OSM und WFS, welche von `export_osm_data.py` und `export_wfs_data.py` heruntergeladen werden. Die Download-Skripte sollten vor der Ausführung dieses Skripts ausgeführt werden.
 
+Die OSM-Daten zu Fahrradleihstation (`data/generated/osm/bicycle_rental.geojson`) enthält fast alle Fahrradleihstationen aus dem StadtRAD-Datensatz der Stadt Hamburg (`data/generated/wfs/stadt_rad.geojson`) + einige weitere.
+
+![Übersicht](./assets/stadtrad_osm.png)
+
+Damit die Stationen nicht doppelt angezeigt werden, versucht das Skript diese beiden Dateien zu vereinigen. Das geschieht über das `name`-Attribute, welches sowohl in den OSM-Daten als auch in den WFS-Daten vorkommt. Durch die "Natur" von OSM sind jedoch nicht alle Namen perfekt übereinstimmend (fehlende Leerzeichen, "U-Bahn" statt "U", Tippfehler etc.). Im September 2023 können 272 von 306 StadtRAD-Stationen perfekt gematched werden. Die restlichen ~10% werden versucht per Levenshtein-Distanz und anschließend per örtlicher Nähe zu mappen. Übrig bleiben 6 Stationen, welche kein Äquivalent in OSM haben. Das liegt vermutlich an der Aktualität der OSM-Daten. Diese verbleibenden Daten werden dem Datensatz hinzugefügt. Die vereinigten Daten werden anschließend in `data/generated/osm/bicycle_rental.geojson` gespeichert.
+
 ### `generate_accident_hot_spots.py`
 
 **Anmerkung**: Benötigt die Unfalldaten, welche von `download_accidents.py` heruntergeladen werden. Außerdem werden die OSM-Daten der Geofabrik benötigt, welche in `export_osm_data.py` heruntergeladen werden (die `.shp` Dateien, nicht die erzeugten GeoJSONs). Die Download-Skripte sollten vor der Ausführung dieses Skripts ausgeführt werden.
