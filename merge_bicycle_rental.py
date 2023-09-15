@@ -109,7 +109,6 @@ def map_spatial_relation(wfs, osm):
     projected_wfs = wfs.to_crs("EPSG:32632")
     buffered_wfs = create_buffer(projected_wfs, MAX_MAPPING_DISTANCE_IN_M)
     buffered_wfs_epsg_4326 = buffered_wfs.to_crs("EPSG:4326")
-    buffered_wfs_epsg_4326.to_file("buffer2.geojson", driver="GeoJSON")
 
     for index, buffer_row in buffered_wfs_epsg_4326.iterrows():
         stadt_rad_station_name = buffer_row["name"]
@@ -135,7 +134,17 @@ def add_missing_rental_stations(wfs, osm):
     logging.info(f"Adding {wfs.shape[0]} StadtRAD stations to OSM.")
 
     for index, buffer_row in wfs.iterrows():
-        osm = osm._append(buffer_row, ignore_index=True)
+        osm_entry = {
+            "name": buffer_row["name"],
+            "is_stadtrad": True,
+            "stadtrad_id": buffer_row["id"],
+            "osm_name": "",
+            "geometry": buffer_row["geometry"],
+            "code": 2566,
+            "fclass": "bicycle_rental"
+
+        }
+        osm = osm._append(osm_entry, ignore_index=True)
 
     return osm
 
@@ -157,7 +166,7 @@ def map_wfs_to_osm(wfs, osm):
 def main():
 
     # OSM rental stations
-    osm_bicycle_points = gpd.read_file("./data/generated/osm/bicycle_rental.geojson")
+    osm_bicycle_points = gpd.read_file("./data/generated/osm/bicycle_rental_original_osm.geojson")
 
     # StadtRAD WFS rental stations
     wfs_bicycle_points = gpd.read_file("./data/generated/wfs/stadt_rad.geojson")

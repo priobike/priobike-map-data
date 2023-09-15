@@ -82,7 +82,7 @@ def main():
     bicycle_rental_points = read_shp_file("gis_osm_pois_free_1", "bicycle_rental")
     bicycle_rental_polygons = read_shp_file("gis_osm_pois_a_free_1", "bicycle_rental")
     merged_bicycle_rental = merge_points_and_polygons(bicycle_rental_points, bicycle_rental_polygons)
-    save(merged_bicycle_rental, "bicycle_rental")
+    save(merged_bicycle_rental, "bicycle_rental_original_osm")
 
     bicycle_shop_points = read_shp_file("gis_osm_pois_free_1", "bicycle_shop")
     bicycle_shop_polygons = read_shp_file("gis_osm_pois_a_free_1", "bicycle_shop")
