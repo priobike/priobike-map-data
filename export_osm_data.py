@@ -3,6 +3,7 @@ import zipfile
 
 import geopandas as gpd
 import requests
+import pandas as pd
 
 ZIP_FILE = "hamburg.zip"
 GEOFABRIK_SHP_URL = "http://download.geofabrik.de/europe/germany/hamburg-latest-free.shp.zip"
@@ -34,32 +35,60 @@ def download_latest_osm_data_set():
    
 
 # Read .shp file, filter feature based on "query" and save it to geojson
-def convert_shp_file(name: str, query:str, output:str):
+def read_shp_file(name: str, query:str):
     name = name + ".shp"
-    output = output + ".geojson"
 
-    logging.info(f"Converting '{name}' -> '{output}'")
+    logging.info(f"Reading '{name}'.")
     shp_file_path = f"{EXTRACT_DIR}/{name}"
 
     # get content of shp file
     gdf = gpd.read_file(shp_file_path)
 
     # filter features where column "fclass" equals the query
-    filtered_data = gdf[gdf["fclass"] == query]
-    output_geojson_path = f"./data/generated/osm/{output}"
+    return gdf[gdf["fclass"] == query]
+
+def merge_points_and_polygons(points, polygons):
+    bicycle_rental_polygons_centroids = get_centroids(polygons)
+    gdf = gpd.GeoDataFrame( pd.concat([points,bicycle_rental_polygons_centroids], ignore_index=True) )
+    gdf.crs = points.crs
+    return gdf
     
-    # Save to geojson
-    filtered_data.to_file(output_geojson_path, driver='GeoJSON')
+def save(feature, output):
+    output = output + ".geojson"
+    output_geojson_path = f"./data/generated/osm/{output}"
+    feature.to_file(output_geojson_path, driver='GeoJSON') 
+
+def get_centroids(feature):
+    centroid_geometries = []
+    for idx, polygon_row in feature.iterrows():
+        centroid = polygon_row['geometry'].centroid
+        centroid_geometries.append(centroid)
+    points_gdf = gpd.GeoDataFrame(geometry=centroid_geometries, crs=feature.crs)
+    # copy content of original data
+    for col in feature.columns:
+        if col != 'geometry':
+            points_gdf[col] = feature[col].values
+    return points_gdf
 
 
 def main():
     download_latest_osm_data_set()
-    convert_shp_file("gis_osm_traffic_free_1", "parking_bicycle", "bicycle_parking")
-    convert_shp_file("gis_osm_traffic_a_free_1", "parking_bicycle", "bicycle_parking_polygon")
-    convert_shp_file("gis_osm_pois_free_1", "bicycle_rental", "bicycle_rental")
-    convert_shp_file("gis_osm_pois_free_1", "bicycle_shop", "bicycle_shop")
-    convert_shp_file("gis_osm_pois_a_free_1", "bicycle_rental", "bicycle_rental_polygon")
-    convert_shp_file("gis_osm_pois_a_free_1", "bicycle_shop", "bicycle_shop_polygon")
+
+    bicycle_parking_points = read_shp_file("gis_osm_traffic_free_1", "parking_bicycle")
+    bicycle_parking_polygons = read_shp_file("gis_osm_traffic_a_free_1", "parking_bicycle")
+    merged_bicycle_parking = merge_points_and_polygons(bicycle_parking_points, bicycle_parking_polygons)
+    save(merged_bicycle_parking, "bicycle_parking")
+
+    bicycle_rental_points = read_shp_file("gis_osm_pois_free_1", "bicycle_rental")
+    bicycle_rental_polygons = read_shp_file("gis_osm_pois_a_free_1", "bicycle_rental")
+    merged_bicycle_rental = merge_points_and_polygons(bicycle_rental_points, bicycle_rental_polygons)
+    save(merged_bicycle_rental, "bicycle_rental")
+
+    bicycle_shop_points = read_shp_file("gis_osm_pois_free_1", "bicycle_shop")
+    bicycle_shop_polygons = read_shp_file("gis_osm_pois_a_free_1", "bicycle_shop")
+    merged_bicycle_shop = merge_points_and_polygons(bicycle_shop_points, bicycle_shop_polygons)
+    save(merged_bicycle_shop, "bicycle_shop")
+
     logging.info("Done.")
    
 
