@@ -1,211 +1,311 @@
 import geopandas as gpd
-import sys
 import logging
 
-logging.basicConfig(level=logging.INFO, format='[%(asctime)s][%(levelname)s][generate_accident_hot_spots] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-logging.getLogger().setLevel(logging.INFO)
+from shapely.geometry import Point
+from pyogrio import read_dataframe
 
-MAPPING_ROADS = {
-    "primary": .7,
-    "motorway": 0.5,
-    "secondary": .85,
-    "default": 1
-}
+# amount of hot spots that will be exported with this script
+HOT_SPOTS_AMOUNT_EXPORT = 30
 
-ANALYSIS_BUFFER_RADIUS = 5
+# spatial distance between accidents to belong to the same cluster in m
+CLUSTER_THRESHOLD = 15
+
+# buffer size around a road to map roads to clusters in m
+ROAD_THRESHOLD = 20
+
+# "bigger" streets have more traffic. That means an accident is more likely to happen
+# so if there is the same amount of accidents on a smaller street that spot is more dangerous
+# score of a road with the fclass "primary" or "primary_link"
+SCORE_ROAD_PRIMARY = 0.8
+# score of a road with the fclass "secondary"
+SCORE_ROAD_SECONDARY = 0.9
+# scpre of all the other roads
+SCORE_ROAD_OTHERS = 1
+
+# Score for accidents with "UKATEGORIE" == 1 (deadly)
+SCORE_ACCIDENT_DEADLY = 1
+# Score for accidents with "UKATEGORIE" == 2 (major injuries)
+SCORE_ACCIDENT_MAJOR = 0.85
+# Score for accidents with "UKATEGORIE" == 3 (minor injuries)
+SCORE_ACCIDENT_MINOR = 0.6
+
+class DistanceMatrix:
+
+    def __init__(self, bounding_box, accidents):
+        self.bounding_box = bounding_box
+        self.spatial_width = bounding_box[2] - bounding_box[0] # long
+        self.spatial_height = bounding_box[3] - bounding_box[1] # lat
+
+        self.width = int(self.spatial_width / ( 2 * CLUSTER_THRESHOLD))
+        self.height = int(self.spatial_height / ( 2 * CLUSTER_THRESHOLD))
+        self.content = [[[] for i in range(0, self.width)] for j in range(0, self.height)]
+
+        self.load(accidents)
+
+    def load(self, accidents):       
+        self.step_width = self.spatial_width / self.width
+        self.step_height = self.spatial_height / self.height
+
+        for accident in accidents:
+            width = int((accident.longitude - self.bounding_box[0]) / self.step_width)
+            height = int((accident.latitude - self.bounding_box[1]) / self.step_height)
+            
+            if height == self.height:
+                height -= 1
+            if width == self.width:
+                width -= 1
+            accident.set_matrix_coordinates(width=width, height=height)
+            self.content[height][width].append(accident)
+
+    def get(self, height, width):
+        if width - 1 < 0 or width + 1 >= self.width:
+            return None
+        if height - 1 < 0 or height + 1 >= self.height:
+            return None
+        return self.content[height][width]
+
+    def get_points_close_to(self, position):
+        
+        width_index = int((position.y - self.bounding_box[0]) / self.step_width)
+        height_index = int((position.x - self.bounding_box[1]) / self.step_height)
+
+        potential_partners = []
+        coordinates_to_look = [
+            [height_index-1, width_index-1],
+            [height_index-1, width_index],
+            [height_index-1, width_index+1],
+            [height_index, width_index-1],
+            [height_index, width_index],
+            [height_index, width_index+1],
+            [height_index+1, width_index-1],
+            [height_index+1, width_index],
+            [height_index+1, width_index+1]
+        ]
+
+        for coords in coordinates_to_look:
+            result = self.get(coords[0], coords[1])
+            if result is not None:
+                potential_partners += result
+
+        return potential_partners
+
+    def remove(self, accident):
+        self.content[accident.matrix_height][accident.matrix_width].remove(accident)
 
 
-def read_geojson_file(file):
-    logging.info(f"Reading file '{file}'")
-    gdf = gpd.read_file(file)
-    return gdf
+class Cluster:
 
+    def __init__(self, point, id) -> None:
+        self.points = [point]
+        self.center = point.get_position()
+        self.id = id
+        self.score = 0
+        self.road = SCORE_ROAD_OTHERS
 
-def clip_to_boundary(boundary, accidents):
-    logging.info("Clip accidents to boundary.")
-    return accidents[accidents.geometry.within(boundary.unary_union)]
+    def add(self, point):
+        self.points.append(point)
+        point_coordinate = point.get_position()
+        center_difference_x = self.center[0] - point_coordinate[0]
+        center_difference_y = self.center[1] - point_coordinate[1]
+        factor = 1 / len(self.points)
+        self.center[0] -= center_difference_x * factor
+        self.center[1] -= center_difference_y * factor
 
-
-def create_buffer(feature, distance):
-    logging.info(f"Creating buffer with radius {distance}")
-    buffered_gdf = feature.copy()
-    buffered_gdf['geometry'] = feature.buffer(distance)
-    return buffered_gdf
-
-
-def save(feature, file):
-    feature.to_file(f"./data/generated/accidents/{file}", driver='GeoJSON') 
-
-
-def merge_overlapping_buffers(feature):
-    logging.info("Merging overlapping buffers.")
-
-    unioned_geometry = feature.geometry.unary_union
-    individual_polygons = unioned_geometry.geoms
-    features = [{'geometry': geom, 'id': idx} for idx, geom in enumerate(individual_polygons)]
-    return gpd.GeoDataFrame(features, crs=feature.crs)
-
-
-def spatial_join_accidents_and_buffer(accidents, buffer):
-    count_list = []
-    unfallkategorie_sum_list = []
-
-    for index, merged_buffer in buffer.iterrows():
-        points_inside_buffer = accidents[accidents.geometry.within(merged_buffer['geometry'])]
-        point_count = len(points_inside_buffer)
-        unfallkategorie_sum = points_inside_buffer["Unfallkategorie"].sum()
-        count_list.append(point_count)
-        unfallkategorie_sum_list.append(unfallkategorie_sum)
-
-    buffer['count'] = count_list
-    buffer['Unfallkategorie_Sum'] = unfallkategorie_sum_list
-
-
-def calculate_score_amount(feature):
-    logging.info("Calculating score of amount.")
-    feature['score_amount'] = feature['count']
-
-
-def calculate_score_of_area(feature):
-    logging.info("Calculating score of area.")
-    max_area = ANALYSIS_BUFFER_RADIUS ** 2 *  3.1415926535
-    feature['area'] = feature.geometry.area
-    score_area = []
-    for index, merged_buffer in feature.iterrows():
-        score = (max_area - (merged_buffer["area"] / merged_buffer["count"])) / max_area
-        if score < 0:
-            score = 0
-        score_area.append(score)
-    feature["score_area"] = score_area
-
-
-def calculate_score_of_vulnerability(feature):
-    logging.info("Calculating score of vulnerability.")
-
-    score_vulnerability = []
-    for index, merged_buffer in feature.iterrows():
-        score = merged_buffer["Unfallkategorie_Sum"] / merged_buffer["count"] / 3
-        score_vulnerability.append(score)
-    feature["score_vulnerability"] = score_vulnerability
-
-
-def filter_roads(roads):
-    logging.info("Filtering roads.")
-    filtered_road_types = ["motorway_link", "motorway", "primary", "primary_link", "secondary", "secondary_link"]
-    filtered_data = roads[roads["fclass"].isin(filtered_road_types)]
+    def get_center(self):
+        return Point(self.center[0], self.center[1]) 
     
+
+    def temp_geojson(self):
+        point = Point(self.center[1], self.center[0])
+        coords = (self.points[0].matrix_height, self.points[0].matrix_width)
+
+        return {
+            "geometry": point,
+            "id": self.id,
+            "size": len(self.points),
+            "coords": str(coords),
+        }
+
+    def to_geojson(self):
+        geojson = self.temp_geojson()
+        geojson["score"] = self.score
+        geojson["score_amount"]= self.score_amount
+        geojson["score_vulnerability"]= self.score_vulnerability
+        geojson["score_road"]= self.score_road
+        return geojson
+
+    def calculcate_vulnerability_score(self): 
+        score_vulnerability = 0
+        for accident in self.points:
+            score_vulnerability += accident.get_vulnerability_score()
+        
+        max_vulnerability = SCORE_ACCIDENT_DEADLY * len(self.points)
+        if max_vulnerability == 0:
+            raise ValueError("No accidents found.")
+
+        score_vulnerability /= max_vulnerability
+        return score_vulnerability
+
+    def calculate_road_score(self):
+        return self.road
+    
+    def calculate_score(self):
+        self.score_amount = len(self.points)
+        self.score_vulnerability = self.calculcate_vulnerability_score()
+        self.score_road = self.calculate_road_score()
+        self.score = self.score_amount * self.score_vulnerability * self.score_road        
+
+   
+class Accident:
+
+    def __init__(self, accident) -> None:
+        self.year = accident["UJAHR"]
+        self.month = accident["UMONAT"]
+        self.hour = accident["USTUNDE"]
+        self.weekday = accident["UWOCHENTAG"]
+        self.latitude = accident["geometry"].y
+        self.longitude = accident["geometry"].x
+        self.vulnerability = accident["UKATEGORIE"]
+        self.point = Point(self.latitude, self.longitude)
+     
+    def set_matrix_coordinates(self, width: int, height: int):
+        self.matrix_width = width
+        self.matrix_height = height
+
+    def get_position(self):
+        return [self.latitude, self.longitude]
+
+    def get_vulnerability_score(self):
+        if self.vulnerability == "1":
+            return SCORE_ACCIDENT_DEADLY
+        if self.vulnerability == "2":
+            return SCORE_ACCIDENT_MAJOR
+        return SCORE_ACCIDENT_MINOR
+    
+    def calculate_distance_to_current_center(self, center: Point):
+        self.current_distance = self.point.distance(center)
+
+
+class ClusterManager:
+
+    def __init__(self,accidents_gdf) -> None:
+        self.clusters = []
+
+        accidents_gdf = accidents_gdf.to_crs("EPSG:31467")
+        accidents = []
+        for index, accident in accidents_gdf.iterrows():
+            accidents.append(Accident(accident))
+
+        if len(accidents) == 0:
+            raise ValueError("No Accidents found.")
+        
+        self.matrix = DistanceMatrix(accidents_gdf.total_bounds, accidents)
+        
+        self.clusters.append(Cluster(accidents[0], 0))
+        accidents = accidents[1:]
+
+        while len(accidents) > 0:                
+            accidents = self.sort_accidents_by_distance(accidents, self.clusters[-1].get_center())
+            current_accident = accidents.pop(0)
+            self.matrix.remove(current_accident)
+
+            if current_accident.current_distance < CLUSTER_THRESHOLD:
+                self.clusters[-1].add(current_accident)
+            else:
+                self.clusters.append(Cluster(current_accident, len(self.clusters)))       
+
+    def sort_accidents_by_distance(self, accidents, center):
+        for accident in accidents:
+            accident.current_distance = 1000 * CLUSTER_THRESHOLD
+        
+        points_potential = self.matrix.get_points_close_to(center)
+        for accident in points_potential:
+            accident.calculate_distance_to_current_center(center)
+
+        return sorted(accidents, key=lambda accident: accident.current_distance)
+
+    def merge_roads(self, roads):
+        clusters_gdf = self.temp_export()
+        clusters_gdf['geometry'] = clusters_gdf['geometry'].buffer(ROAD_THRESHOLD)
+        roads['geometry'] = roads['geometry'].buffer(ROAD_THRESHOLD)
+       
+        for index, cluster in clusters_gdf.iterrows():
+            buffer_geometry = cluster['geometry']
+
+            intersecting_lines = roads[roads.geometry.intersects(buffer_geometry)]
+            highest_score = SCORE_ROAD_OTHERS if intersecting_lines.empty else intersecting_lines['score'].max()
+
+            self.clusters[cluster["id"]].road = highest_score            
+
+    def calculate_scores(self):
+        for cluster in self.clusters:
+            cluster.calculate_score()
+
+    def temp_export(self):
+        jsons = []
+        for cluster in self.clusters:
+            jsons.append(cluster.temp_geojson())
+        
+        point_geometries = [cluster["geometry"] for cluster in jsons]
+        gdf = gpd.GeoDataFrame(jsons, geometry=point_geometries)
+        gdf.crs = "EPSG:31467"
+        return gdf
+
+
+    def export(self):
+        jsons = []
+        print(len(self.clusters))
+        for cluster in self.clusters:
+            jsons.append(cluster.to_geojson())
+        
+        point_geometries = [cluster["geometry"] for cluster in jsons]
+        gdf = gpd.GeoDataFrame(jsons, geometry=point_geometries)
+        gdf.crs = "EPSG:31467"
+        gdf = gdf.to_crs("EPSG:4326")
+        sorted_gdf = gdf.sort_values(by='score', ascending=False)
+        top_30_rows = sorted_gdf.head(30)
+        return top_30_rows
+
+
+def read_roads():
+    roads = read_dataframe("./data/temp/hamburg/gis_osm_roads_free_1.shp")
+    
+    filtered_road_types = ["primary", "primary_link", "secondary", "secondary_link"]
+    logging.info("Filter roads.")
+    roads = roads[roads["fclass"].isin(filtered_road_types)]
     scores = []
 
-    for index, merged_buffer in filtered_data.iterrows():
-        fclass = merged_buffer["fclass"]
-        if fclass == "motorway_link" or fclass == "motorway":
-            scores.append(MAPPING_ROADS["motorway"])
-        elif fclass == "primary_link" or fclass == "primary":
-            scores.append(MAPPING_ROADS["primary"])
+    for index, road in roads.iterrows():
+        fclass = road["fclass"]
+        if fclass == "primary_link" or fclass == "primary":
+            scores.append(SCORE_ROAD_PRIMARY)
         else:
-            scores.append(MAPPING_ROADS["secondary"])
+            scores.append(SCORE_ROAD_SECONDARY)
 
-    filtered_data["score"] = scores
-    return filtered_data
-
-
-def spatial_join_roads_and_buffer(roads, buffer):
-    logging.info("Calculating score of roads.")
-    highest_scores = {}
-
-    roads_with_buffer = roads.copy()
-    roads_with_buffer['geometry'] = roads_with_buffer['geometry'].buffer(5)
-
-
-    for index, merged_buffer in buffer.iterrows():
-        buffer_geometry = merged_buffer['geometry']
-
-        intersecting_lines = roads_with_buffer[roads_with_buffer.geometry.intersects(buffer_geometry)]
-
-        if intersecting_lines.empty:
-            highest_score = MAPPING_ROADS["default"]
-        else:
-            highest_score = intersecting_lines['score'].max()
-
-        highest_scores[index] = highest_score
-
-    buffer['score_road'] = buffer.index.map(highest_scores)
-
-
-def calculate_total_score(features):
-    scores = []
-    for index, feature in features.iterrows():
-        score_vulnerability = feature["score_vulnerability"]
-        score_area = feature["score_area"]
-        score_road = feature["score_road"]
-        score_amount = feature["score_amount"]
-        scores.append(score_road * score_area * score_vulnerability * score_amount)
-    features["score_total"] = scores
-
-def get_centroids(feature):
-    logging.info("Calculating centroids.")
-    # Create an empty list to hold the centroid point geometries
-    centroid_geometries = []
-
-    # Iterate over the rows of the GeoDataFrame
-    for idx, polygon_row in feature.iterrows():
-        # Calculate the centroid of the polygon
-        centroid = polygon_row['geometry'].centroid
-
-        # Store the centroid geometry in the list
-        centroid_geometries.append(centroid)
-
-    # Create a new GeoDataFrame with the centroid geometries
-    points_gdf = gpd.GeoDataFrame(geometry=centroid_geometries, crs=feature.crs)
-
-    # Copy attributes from the original GeoDataFrame
-    for col in feature.columns:
-        if col != 'geometry':
-            points_gdf[col] = feature[col].values
-
-    return points_gdf
+    roads["score"] = scores
+    logging.info("Converting roads geometry to EPSG:31467")
+    roads = roads.to_crs("EPSG:31467")
+    return roads 
 
 
 def main():
-    amount_of_spots = 30
-    if len(sys.argv) > 0 and sys.argv[0].isdigit():
-        amount_of_spots = int(sys.argv[0])    
-        
-    boundary = read_geojson_file("./data/boundary/hamburg_boundary.geojson")
-    boundary = boundary.to_crs(epsg=25832)
+    logging.info("Reading accidents_total.geojson")
+    accidents = read_dataframe("./data/generated/accidents/accidents_total.geojson")
 
-    accidents = read_geojson_file("./data/generated/accidents/accidents_total.geojson")
-
-    # select all accidents inside the boundaries of hamburg
-    clipped_accidents = clip_to_boundary(boundary, accidents)
-
-    # create a buffer around every accident
-    buffer_accidents = create_buffer(clipped_accidents, ANALYSIS_BUFFER_RADIUS)
-
-    # merge all overlapping buffer
-    merged_buffer_accidents = merge_overlapping_buffers(buffer_accidents)
-
-    spatial_join_accidents_and_buffer(accidents, merged_buffer_accidents)
-
-    roads = read_geojson_file("./data/temp/hamburg/gis_osm_roads_free_1.shp")
-    roads = filter_roads(roads)
-    roads = roads.to_crs("EPSG:25832")
+    logging.info("Create clusters of accidents.")
+    cluster_manager = ClusterManager(accidents)
     
-    spatial_join_roads_and_buffer(roads, merged_buffer_accidents)    
-    calculate_score_amount(merged_buffer_accidents)
-    calculate_score_of_vulnerability(merged_buffer_accidents)
-    calculate_score_of_area(merged_buffer_accidents)
+    logging.info("Reading roads .shp file from OSM.")
+    roads = read_roads()
+    logging.info("Merging roads with clusters.")
+    cluster_manager.merge_roads(roads)
 
-    calculate_total_score(merged_buffer_accidents)
+    logging.info("Calculate Score of clusters.")
+    cluster_manager.calculate_scores()
 
-    top_rows = merged_buffer_accidents.nlargest(amount_of_spots, "score_total")
-
-    centroids = get_centroids(top_rows)
-    centroids = centroids.to_crs("EPSG:4326")
-
-    logging.info(f"Saving '{amount_of_spots}' spots.")
-
-    save(centroids, "accident_hot_spots.geojson")
+    logging.info("Export cluster.")
+    accident_hotspots = cluster_manager.export()
+    accident_hotspots.to_file("./data/generated/accidents/accident_hotspots.geojson")
 
 
 if __name__ == "__main__":
