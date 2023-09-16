@@ -12,8 +12,6 @@ RUN mkdir -p /data/temp
 RUN mkdir -p /data/boundary
 RUN mkdir -p /data/accidents
 
-COPY ./data/boundary/hamburg_boundary.geojson ./data/boundary/hamburg_boundary.geojson
-
 RUN python -m pip install -r requirements.txt
 RUN python main.py
 
