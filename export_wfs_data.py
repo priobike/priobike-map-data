@@ -2,9 +2,6 @@ import json
 import logging
 import requests
 
-logging.basicConfig(level=logging.INFO, format='[%(asctime)s][%(levelname)s][export_wfs_data] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-logging.getLogger().setLevel(logging.INFO)
-
 urls = {
     "bike_and_ride": "https://geodienste.hamburg.de/HH_WFS_Bike_und_Ride?SERVICE=WFS&REQUEST=GetFeature&outputFormat=application/geo%2Bjson&version=2.0.0&typeName=de.hh.up:bike_und_ride&srsname=EPSG:4326",
     "traffic": "https://geodienste.hamburg.de/HH_WFS_Verkehrslage?SERVICE=WFS&REQUEST=GetFeature&typeName=de.hh.up:verkehrslage&version=2.0.0&OUTPUTFORMAT=application/geo%2Bjson&srsname=EPSG:4326",
@@ -20,6 +17,14 @@ urls = {
 OUTPUT_DIRECTORY = "data/generated/wfs/"
 
 def main():
+    """
+    Download and store GeoJSON data from Hamburg's web feature services.
+
+    This function iterates through the specified URLs of the WFS, exports the data as GeoJSON from each WFS,
+    and stores it in the `OUTPUT_DIRECTORY` with filenames corresponding to the service names.
+
+    The geojson crs will be EPSG:4326.
+    """
     for key, value in urls.items():
         logging.info(f"Downloading '{value}' -> '{key}.geojson'")
         r = requests.get(url=value)
