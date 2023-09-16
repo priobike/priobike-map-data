@@ -11,12 +11,10 @@ TEMP_DIR = "./data/temp/"
 ZIP_FILE_PATH = f"{TEMP_DIR}/{ZIP_FILE}"
 EXTRACT_DIR = f"{TEMP_DIR}/hamburg"
 
-logging.basicConfig(level=logging.INFO, format='[%(asctime)s][%(levelname)s][export_osm_data] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-logging.getLogger().setLevel(logging.INFO)
-
-
-# Download and extract the latest osm data (zip) from "http://download.geofabrik.de/europe/germany/hamburg-latest-free.shp.zip" 
 def download_latest_osm_data_set():
+    """
+    Download and extract the latest OSM data (zip) from the specified `GEOFABRIK_SHP_URL`.
+    """
     # Download file
     logging.info(f"Downloading 'hamburg-latest-free.shp.zip' from '{GEOFABRIK_SHP_URL}' ...")
     response = requests.get(GEOFABRIK_SHP_URL)

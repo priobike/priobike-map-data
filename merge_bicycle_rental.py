@@ -7,10 +7,6 @@ STADTRAD_PREFIX = "StadtRAD"
 MATCHING_SCORE_THRESHOLD = 80
 MAX_MAPPING_DISTANCE_IN_M = 50
 
-logging.basicConfig(level=logging.INFO, format='[%(asctime)s][%(levelname)s][merge_bicycle_rental] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-logging.getLogger().setLevel(logging.INFO)
-
-
 def get_osm_entry_by_name(osm, name, match_list):
     query = osm[osm['name'] == name]
 
@@ -22,8 +18,6 @@ def get_osm_entry_by_name(osm, name, match_list):
         return None
     
     best_match_query = osm[osm['name'] == best_match]
-    if best_match == "Am Kaiserkai / Großer Grasbrook":
-        logging.info(f"{name} /// {best_match} {score}")
     if best_match_query.empty:
         logging.warning(f"It should find one ... {name, best_match}")
         return None
@@ -150,8 +144,16 @@ def add_missing_rental_stations(wfs, osm):
 
 def map_wfs_to_osm(wfs, osm):
 
+    # Store the original osm name in a new column
+    # this is used for debugging purposes
     osm['osm_name'] = osm['name']
+
+    # initialize a new column "is_stadtrad" or type boolean
+    # the value will be True if the osm entry was mapped to a StadtRAD station
     osm['is_stadtrad'] = [False] * len(osm)
+
+    # initialize a new column "stadtrad_id"
+    # the value of this column will be the 
     osm['stadtrad_id'] = [None] * len(osm)
 
     remaining_wfs_stations = map_perfect_matches(wfs, osm)
