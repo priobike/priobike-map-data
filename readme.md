@@ -7,6 +7,10 @@ Mit diesem Repo werden zusätzliche Karteninformationen für die PrioBike-App he
 
 ## Skripte
 
+### `main.py`
+
+Mit diesem Skript werden alle folgenden Skripte in der richtigen Reihenfolge ausgeführt. Alle möglichen Daten werden mit diesem Skript aktualisiert.
+
 ### `export_osm_data.py`
 
 Dieses Skript lädt die neusten OpenStreetMap Daten der Stadt Hamburg (angeboten durch [Geofabrik](http://download.geofabrik.de/europe/germany/hamburg-latest-free.shp.zip)) herunter. Diese werden anschließend anhand der Werte des Attributes `fclass` gefiltert und anschließend in einer `geojson`-Datei gespeichert. In diesen Datensätzen werden manche Features als Punktdaten und andere als Polygone gespeichert. Die Datensätze enthalten jedoch unterschiedliche Features.
