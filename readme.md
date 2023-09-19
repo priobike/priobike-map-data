@@ -78,6 +78,12 @@ Dokumentation der Daten: [Dokumentation](https://www.opengeodata.nrw.de/produkte
 
 **Anmerkung**: Benötigt die Unfalldaten, welche von `export_accidents.py` heruntergeladen werden. Außerdem werden die OSM-Daten der Geofabrik benötigt, welche in `export_osm_data.py` heruntergeladen werden (die `.shp` Dateien, nicht die erzeugten GeoJSONs). Die Download-Skripte sollten vor der Ausführung dieses Skripts ausgeführt werden.
 
-**Anmerkung**: Die Unfalldaten stammen vom [Unfallatlas des Statisportal](https://unfallatlas.statistikportal.de/) und werden als `.zip`-Datei heruntergeladen. Die Struktur dieser Dateien schwankt jedoch sehr. Es ist daher möglich, dass dieses Programm nicht mehr richtig funktioniert, wenn neue Unfalldaten veröffentlicht werden. Weiterhin halte ich es für möglich, dass die Struktur der Dateien in Zukunft retrospektivisch angepasst wird.
+**Anmerkung**: Die Unfalldaten stammen vom [Unfallatlas des Statisportal](https://unfallatlas.statistikportal.de/) und werden als `.zip`-Datei heruntergeladen. Die Struktur dieser Dateien schwankt jedoch sehr.
+
+- 2016: `/Shapefile/Unfaelle_2016_LineRef.shp`
+- 2017 - 2020: `/Shape/Unfallorte<jahr>_LinRef.shp` (hier fehlt ein Unterstrich)
+- ab 2021: `/shp/Unfallorte<jahr>_LineRef.shp`
+
+Es ist daher möglich, dass dieses Programm nicht mehr richtig funktioniert, wenn neue Unfalldaten veröffentlicht werden. Weiterhin halte ich es für möglich, dass die Struktur der Dateien in Zukunft retrospektivisch angepasst wird. Der Pfad für die Unfalldaten wird in der Datei `export_accidents.py` mit der Funktion `get_shape_path(year)` generiert. Die Unfalldaten stehen theoretisch auch als `.csv` Dateien zur Verfügung. Die Struktur bei diesen `.zip`-Dateien ist jedoch nochmal bedeutend schlimmer.
 
 In diesem Skript werden die heruntergeladenen Unfalldaten aus dem [Unfallatlas des Statisportal](https://unfallatlas.statistikportal.de/) ([Lizenz](https://www.govdata.de/dl-de/by-2-0)) genutzt um Unfallschwerpunkte in der Stadt Hamburg ausfindig zu machen. Dafür werden zusätzlich die Straßen-Daten von OpenStreetMap und ein Umrandungspolygon der Stadt Hamburg benötigt ([Quelle](http://opendatalab.de/projects/geojson-utilities/)). Die Unfälle werden geclustert und anschließend bewertet. (Dichte der Unfälle, Straßenart (Schnellstraße → mehr Autos), Anzahl der Unfälle, Schwere der Unfälle). Am Ende werden die `30` Unfallschwerpunkte mit dem höchsten Score in `data/generated/accidents/accident_hotspots.geojson` gespeichert.

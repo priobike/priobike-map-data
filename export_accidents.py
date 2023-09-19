@@ -3,6 +3,7 @@ import datetime
 import logging
 import zipfile
 from pyogrio import read_dataframe
+from pyogrio.errors import DataSourceError
 import pandas as pd
 
 MIN_YEAR = 2016
@@ -21,6 +22,7 @@ def get_shp_path(year):
     if year > 2021:
         return f"{get_zip_extract_directory_path(year)}/shp/Unfallorte{year}_LinRef.shp"
 
+    # for years 2017 to 2020
     return f"{get_zip_extract_directory_path(year)}/Shapefile/Unfallorte{year}_LinRef.shp"
 
 def get_zip_path(year):
@@ -57,7 +59,15 @@ def extract_zip(year):
 
 def process_shp_file_of_year(year):
     logging.info("Reading .shp file.")
-    shp_file = read_dataframe(get_shp_path(year))
+
+    shp_file_path = get_shp_path(year)
+    
+    shp_file = None
+    try:
+        # using pyogrio for better performance while reading large .shp files
+        shp_file = read_dataframe(shp_file_path)
+    except DataSourceError:
+        raise FileNotFoundError(f"The .shp file with the accident data for the year {year} could not be found. It is very likely that the 'Statistische Ämter' have changed the structure of the .zip files (containing the .shp file) they offer for download. This has already happened in the past. Please compare the structure of the folder `data/temp/{year}` with the given path {shp_file_path} (from get_shp_path({year})). Check the README.md for more information.")
 
     # see documentation (link in readme), 02 is code for hamburg
     logging.info("Selecting features from Hamburg.")
