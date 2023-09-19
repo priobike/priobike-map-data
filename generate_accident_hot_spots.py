@@ -305,7 +305,7 @@ def main():
 
     logging.info("Export cluster.")
     accident_hotspots = cluster_manager.export()
-    accident_hotspots.to_file("./data/generated/accidents/accident_hotspots.geojson")
+    accident_hotspots.to_file("./data/generated/accidents/accident_hot_spots.geojson")
 
 
 if __name__ == "__main__":
