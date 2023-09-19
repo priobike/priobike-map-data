@@ -28,7 +28,7 @@ Dieses Skript lädt Daten aus verschiedenen Web Feature Services ([WFS](https://
 
 #### 1. HH_WFS_Bike_und_Ride (`data/generated/wfs/bike_and_ride.geojson`)
 
-Der Datensatz enthält die Lage der Fahrradabstellanlagen an Schnellbahnhaltestellen im Hamburger Stadtgebiet. Für jede Abstellanlage wird die Anzahl der öffentlichen Stellplätze (überdacht und nicht überdacht) und, wenn vorhanden, die Anzahl der abschließbaren Mietplätze angegeben. Mehr Details siehe [hier](https://metaver.de/trefferanzeige?docuuid=337AA4A2-72EF-4AE0-A8F6-D35B243532DC). [Lizenz](https://www.govdata.de/dl-de/by-2-0). [Quelle](`https://geodienste.hamburg.de/HH_WFS_Bike_und_Ride?SERVICE=WFS&REQUEST=GetFeature&outputFormat=application/geo%2Bjson&version=2.0.0&typeName=de.hh.up:bike_und_ride&srsname=EPSG:4326`).
+Der Datensatz enthält die Lage der Fahrradabstellanlagen an Schnellbahnhaltestellen im Hamburger Stadtgebiet. Für jede Abstellanlage wird die Anzahl der öffentlichen Stellplätze (überdacht und nicht überdacht) und, wenn vorhanden, die Anzahl der abschließbaren Mietplätze angegeben. Mehr Details siehe [hier](https://metaver.de/trefferanzeige?docuuid=337AA4A2-72EF-4AE0-A8F6-D35B243532DC). [Lizenz](https://www.govdata.de/dl-de/by-2-0). [Quelle](https://geodienste.hamburg.de/HH_WFS_Bike_und_Ride?SERVICE=WFS&REQUEST=GetFeature&outputFormat=application/geo%2Bjson&version=2.0.0&typeName=de.hh.up:bike_und_ride&srsname=EPSG:4326).
 
 #### 2. HH_WFS_Verkehrslage (`data/generated/wfs/traffic.geojson`)
 
@@ -39,28 +39,28 @@ Liegen für einzelne Segmente dauerhaft oder zeitweise keine Daten vor, wird kei
 
 #### 3. HH_WFS_Baustellen (`data/generated/wfs/construction_sites.geojson`)
 
-Baustellen auf Hauptverkehrs- und Bundesfernstraßen Hamburg. Mehr Details siehe [hier](https://www.govdata.de/suchen/-/details/baustellen-auf-hauptverkehrs-und-bundesfernstrassen-hamburg). [Lizenz](https://www.govdata.de/dl-de/by-2-0). [Quelle](`https://geodienste.hamburg.de/HH_WFS_Baustellen?SERVICE=WFS&REQUEST=GetFeature&typeName=de.hh.up:tns_steckbrief_visualisierung&version=2.0.0&OUTPUTFORMAT=application/geo%2Bjson&srsname=EPSG:4326`).
+Baustellen auf Hauptverkehrs- und Bundesfernstraßen Hamburg. Mehr Details siehe [hier](https://www.govdata.de/suchen/-/details/baustellen-auf-hauptverkehrs-und-bundesfernstrassen-hamburg). [Lizenz](https://www.govdata.de/dl-de/by-2-0). [Quelle](https://geodienste.hamburg.de/HH_WFS_Baustellen?SERVICE=WFS&REQUEST=GetFeature&typeName=de.hh.up:tns_steckbrief_visualisierung&version=2.0.0&OUTPUTFORMAT=application/geo%2Bjson&srsname=EPSG:4326).
 
 #### 4. HH_WFS_Stadtrad (`data/generated/wfs/stadt_rad.geojson`)
 
-Der Datensatz enthält die Position aller StadtRAD-Stationen im Hamburger Stadtgebiet und die Anzahl der aktuell zur Ausleihe zur Verfügung stehenden Fahrräder und Lastenpedelecs. Mehr Details siehe [hier](https://metaver.de/trefferanzeige?docuuid=D18F375E-FA5F-4998-AFF8-557969F44479). [Lizenz](https://www.govdata.de/dl-de/by-2-0). [Quelle](`https://geodienste.hamburg.de/HH_WFS_Stadtrad?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&typename=de.hh.up:stadtrad_stationen&outputFormat=application/geo%2bjson&srsname=EPSG:4326`).
+Der Datensatz enthält die Position aller StadtRAD-Stationen im Hamburger Stadtgebiet und die Anzahl der aktuell zur Ausleihe zur Verfügung stehenden Fahrräder und Lastenpedelecs. Mehr Details siehe [hier](https://metaver.de/trefferanzeige?docuuid=D18F375E-FA5F-4998-AFF8-557969F44479). [Lizenz](https://www.govdata.de/dl-de/by-2-0). [Quelle](https://geodienste.hamburg.de/HH_WFS_Stadtrad?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&typename=de.hh.up:stadtrad_stationen&outputFormat=application/geo%2bjson&srsname=EPSG:4326).
 
 #### 5. HH_WFS_Fahrradluftstationen (`data/generated/wfs/bike_air_station.geojson`)
 
-[Lizenz](https://www.govdata.de/dl-de/by-2-0). [Quelle](`https://geodienste.hamburg.de/HH_WFS_Fahrradluftstationen?SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature&typename=de.hh.up:fahrradluftstationen&OUTPUTFORMAT=application/geo%2Bjson&srsname=EPSG:4326`).
+[Lizenz](https://www.govdata.de/dl-de/by-2-0). [Quelle](https://geodienste.hamburg.de/HH_WFS_Fahrradluftstationen?SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature&typename=de.hh.up:fahrradluftstationen&OUTPUTFORMAT=application/geo%2Bjson&srsname=EPSG:4326).
 
 #### 6. HH_WFS_ITS_Dienste_Hamburg (`data/generated/wfs/static_green_waves.geojson`)
 
-Statische grüne Wellen in Hamburg. Mehr Details siehe [hier](https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=A1ADDD06-FAF3-42B7-8C32-E430EAD67E9F&plugid=/ingrid-group:ige-iplug-hmdk.metaver). [Lizenz](https://www.govdata.de/dl-de/by-2-0). [Quelle](`https://geodienste.hamburg.de/HH_WFS_ITS_Dienste_Hamburg?SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature&typeName=de.hh.up:its_iot_registry&OUTPUTFORMAT=application/geo%2Bjson&srsname=EPSG:4326&Filter=%3Cogc:Filter%20xmlns:ogc=%22http://www.opengis.net/ogc%22%3E%3Cogc:PropertyIsEqualTo%3E%3Cogc:PropertyName%3Epurpose_id%3C/ogc:PropertyName%3E%3Cogc:Literal%3E14%3C/ogc:Literal%3E%3C/ogc:PropertyIsEqualTo%3E%3C/ogc:Filter%3E`).
+Statische grüne Wellen in Hamburg. Mehr Details siehe [hier](https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=A1ADDD06-FAF3-42B7-8C32-E430EAD67E9F&plugid=/ingrid-group:ige-iplug-hmdk.metaver). [Lizenz](https://www.govdata.de/dl-de/by-2-0). [Quelle](https://geodienste.hamburg.de/HH_WFS_ITS_Dienste_Hamburg?SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature&typeName=de.hh.up:its_iot_registry&OUTPUTFORMAT=application/geo%2Bjson&srsname=EPSG:4326&Filter=%3Cogc:Filter%20xmlns:ogc=%22http://www.opengis.net/ogc%22%3E%3Cogc:PropertyIsEqualTo%3E%3Cogc:PropertyName%3Epurpose_id%3C/ogc:PropertyName%3E%3Cogc:Literal%3E14%3C/ogc:Literal%3E%3C/ogc:PropertyIsEqualTo%3E%3C/ogc:Filter%3E).
 
 #### 7. HH_WFS_ITS_Dienste_Hamburg (`data/generated/wfs/prio_change.geojson`)
 
-Mehr Details siehe [hier](https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=A1ADDD06-FAF3-42B7-8C32-E430EAD67E9F&plugid=/ingrid-group:ige-iplug-hmdk.metaver). [Lizenz](https://www.govdata.de/dl-de/by-2-0). [Quelle](`https://geodienste.hamburg.de/HH_WFS_ITS_Dienste_Hamburg?SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature&typeName=de.hh.up:its_iot_registry&OUTPUTFORMAT=application/geo%2Bjson&srsname=EPSG:4326&Filter=%3Cogc:Filter%20xmlns:ogc=%22http://www.opengis.net/ogc%22%3E%3Cogc:PropertyIsEqualTo%3E%3Cogc:PropertyName%3Epurpose_id%3C/ogc:PropertyName%3E%3Cogc:Literal%3E15%3C/ogc:Literal%3E%3C/ogc:PropertyIsEqualTo%3E%3C/ogc:Filter%3E`).
+Mehr Details siehe [hier](https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=A1ADDD06-FAF3-42B7-8C32-E430EAD67E9F&plugid=/ingrid-group:ige-iplug-hmdk.metaver). [Lizenz](https://www.govdata.de/dl-de/by-2-0). [Quelle](https://geodienste.hamburg.de/HH_WFS_ITS_Dienste_Hamburg?SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature&typeName=de.hh.up:its_iot_registry&OUTPUTFORMAT=application/geo%2Bjson&srsname=EPSG:4326&Filter=%3Cogc:Filter%20xmlns:ogc=%22http://www.opengis.net/ogc%22%3E%3Cogc:PropertyIsEqualTo%3E%3Cogc:PropertyName%3Epurpose_id%3C/ogc:PropertyName%3E%3Cogc:Literal%3E15%3C/ogc:Literal%3E%3C/ogc:PropertyIsEqualTo%3E%3C/ogc:Filter%3E).
 
 #### 8. HH_WFS_Velorouten (`data/generated/wfs/velo_routes.geojson`)
 
 Der Datensatz enthält das Netz der 14 Velorouten für den Alltagsradverkehr (ca. 280 km) in Hamburg. Die Velorouten verbinden die City mit wichtigen Alltagszielen wie den Wohngebieten der inneren und äußeren Stadt, Stadtteilzentren und Arbeitsplatzschwerpunkten. Mehr Details siehe [hier](https://metaver.de/trefferanzeige?docuuid=8254E244-7DD3-401D-AA15-4CDE78D4E91F).
-[Lizenz](https://www.govdata.de/dl-de/by-2-0). [Quelle](`"https://geodienste.hamburg.de/HH_WFS_Velorouten?SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature&OUTPUTFORMAT=application/geo%2Bjson&srsname=EPSG:4326&typename=de.hh.up:velorouten"`).
+[Lizenz](https://www.govdata.de/dl-de/by-2-0). [Quelle](https://geodienste.hamburg.de/HH_WFS_Velorouten?SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature&OUTPUTFORMAT=application/geo%2Bjson&srsname=EPSG:4326&typename=de.hh.up:velorouten).
 
 ### `merge_bicycle_rental.py`
 
