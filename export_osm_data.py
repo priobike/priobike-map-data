@@ -1,40 +1,94 @@
-from setup import *
+import logging
+import zipfile
 
+import geopandas as gpd
+import requests
+import pandas as pd
 
-def convert_osm_to_geojson(local_file, feature_name, query, geo_json_file_name):
-    log("Converting " + local_file + " to " + geo_json_file_name)
-    arcpy.conversion.ExportFeatures(
-        get_local_file_path(local_file),
-        get_data_base_path(feature_name),
-        query, "NOT_USE_ALIAS",
-        'osm_id "osm_id" true true false 12 Text 0 0,First,#,' + get_local_file_path(
-            local_file) + ',osm_id,0,12;' + 'code "code" true true false 4 Short 0 4,First,#,' + get_local_file_path(
-            local_file) + ',code,-1,-1;' + 'fclass "fclass" true true false 28 Text 0 0,First,#,' + get_local_file_path(
-            local_file) + ',fclass,0,28;' + 'name "name" true true false 100 Text 0 0,First,#,' + get_local_file_path(
-            local_file) + ',name,0,100',
-        None)
-    arcpy.conversion.FeaturesToJSON(feature_name,
-                                    get_local_file_path(geo_json_file_name),
-                                    "NOT_FORMATTED", "NO_Z_VALUES", "NO_M_VALUES", "GEOJSON", "WGS84",
-                                    "USE_FIELD_NAME")
+ZIP_FILE = "hamburg.zip"
+GEOFABRIK_SHP_URL = "http://download.geofabrik.de/europe/germany/hamburg-latest-free.shp.zip"
+TEMP_DIR = "./data/temp/"
+ZIP_FILE_PATH = f"{TEMP_DIR}/{ZIP_FILE}"
+EXTRACT_DIR = f"{TEMP_DIR}/hamburg"
+
+def download_latest_osm_data_set():
+    """
+    Download and extract the latest OSM data (zip) from the specified `GEOFABRIK_SHP_URL`.
+    """
+    # Download file
+    logging.info(f"Downloading 'hamburg-latest-free.shp.zip' from '{GEOFABRIK_SHP_URL}' ...")
+    response = requests.get(GEOFABRIK_SHP_URL)
+    response.raise_for_status()
+
+    # write response to file
+    with open(f"{TEMP_DIR}/{ZIP_FILE}", "wb") as file:
+        file.write(response.content)
+
+    logging.info(f"Done. Saved in '{ZIP_FILE_PATH}'.")
+    logging.info("Extracting .zip file ...")
+    # Extract zip file
+    with zipfile.ZipFile(ZIP_FILE_PATH, 'r') as zip_file:
+        zip_file.extractall(EXTRACT_DIR)
+    logging.info(f"Done. Extracted files to '{EXTRACT_DIR}'.")
+   
+
+# Read .shp file, filter feature based on "query" and save it to geojson
+def read_shp_file(name: str, query:str):
+    name = name + ".shp"
+
+    logging.info(f"Reading '{name}'.")
+    shp_file_path = f"{EXTRACT_DIR}/{name}"
+
+    # get content of shp file
+    gdf = gpd.read_file(shp_file_path)
+
+    # filter features where column "fclass" equals the query
+    return gdf[gdf["fclass"] == query]
+
+def merge_points_and_polygons(points, polygons):
+    bicycle_rental_polygons_centroids = get_centroids(polygons)
+    gdf = gpd.GeoDataFrame( pd.concat([points,bicycle_rental_polygons_centroids], ignore_index=True) )
+    gdf.crs = points.crs
+    return gdf
+    
+def save(feature, output):
+    output = output + ".geojson"
+    output_geojson_path = f"./data/generated/osm/{output}"
+    feature.to_file(output_geojson_path, driver='GeoJSON') 
+
+def get_centroids(feature):
+    centroid_geometries = []
+    for idx, polygon_row in feature.iterrows():
+        centroid = polygon_row['geometry'].centroid
+        centroid_geometries.append(centroid)
+    points_gdf = gpd.GeoDataFrame(geometry=centroid_geometries, crs=feature.crs)
+    # copy content of original data
+    for col in feature.columns:
+        if col != 'geometry':
+            points_gdf[col] = feature[col].values
+    return points_gdf
 
 
 def main():
-    init_arcpy()
-    clear_database()
-    convert_osm_to_geojson("\\data\\open-street-map\\gis_osm_traffic_free_1.shp", "parking_bicycle",
-                           "fclass = 'parking_bicycle'", "data\\generated\\osm\\bicycle_parking.geojson")
-    convert_osm_to_geojson("\\data\\open-street-map\\gis_osm_traffic_a_free_1.shp", "parking_bicycle_a",
-                           "fclass = 'parking_bicycle'", "data\\generated\\osm\\bicycle_parking_polygon.geojson")
-    convert_osm_to_geojson("\\data\\open-street-map\\gis_osm_pois_free_1.shp", "rental_bicycle",
-                           "fclass = 'bicycle_rental'", "data\\generated\\osm\\bicycle_rental.geojson")
-    convert_osm_to_geojson("\\data\\open-street-map\\gis_osm_pois_free_1.shp", "shop_bicycle",
-                           "fclass = 'bicycle_shop'", "data\\generated\\osm\\bicycle_shop.geojson")
-    convert_osm_to_geojson("\\data\\open-street-map\\gis_osm_pois_a_free_1.shp", "rental_bicycle_a",
-                           "fclass = 'bicycle_rental'", "data\\generated\\osm\\bicycle_rental_polygon.geojson")
-    convert_osm_to_geojson("\\data\\open-street-map\\gis_osm_pois_a_free_1.shp", "shop_bicycle_a",
-                           "fclass = 'bicycle_shop'", "data\\generated\\osm\\bicycle_shop_polygon.geojson")
+    download_latest_osm_data_set()
 
+    bicycle_parking_points = read_shp_file("gis_osm_traffic_free_1", "parking_bicycle")
+    bicycle_parking_polygons = read_shp_file("gis_osm_traffic_a_free_1", "parking_bicycle")
+    merged_bicycle_parking = merge_points_and_polygons(bicycle_parking_points, bicycle_parking_polygons)
+    save(merged_bicycle_parking, "bicycle_parking")
+
+    bicycle_rental_points = read_shp_file("gis_osm_pois_free_1", "bicycle_rental")
+    bicycle_rental_polygons = read_shp_file("gis_osm_pois_a_free_1", "bicycle_rental")
+    merged_bicycle_rental = merge_points_and_polygons(bicycle_rental_points, bicycle_rental_polygons)
+    save(merged_bicycle_rental, "bicycle_rental_original_osm")
+
+    bicycle_shop_points = read_shp_file("gis_osm_pois_free_1", "bicycle_shop")
+    bicycle_shop_polygons = read_shp_file("gis_osm_pois_a_free_1", "bicycle_shop")
+    merged_bicycle_shop = merge_points_and_polygons(bicycle_shop_points, bicycle_shop_polygons)
+    save(merged_bicycle_shop, "bicycle_shop")
+
+    logging.info("Done.")
+   
 
 if __name__ == "__main__":
     main()

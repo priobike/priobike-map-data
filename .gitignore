@@ -1,6 +1,11 @@
-/arcgisproject/.backups
-/data/open-street-map-dresden
 *.lock
 __pycache__
-/data/temp
-/data/generated/osm_os
+.idea
+
+data/temp
+!*.gitkeep
+
+*.geojson
+*.csv
+
+.venv
