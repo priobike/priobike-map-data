@@ -61,7 +61,7 @@ def save(key, result_json):
         
 def save_v2(key, result_json):
     for i in range(0, len(result_json['features'])):
-        result_json['features'][i]['id'] = f"{key}-{i}"
+        result_json['features'][i]['properties']['id'] = f"{key}-{i}"
     with open(f"{OUTPUT_DIRECTORY}/{key}_v2.geojson", "w") as file:
         json.dump(result_json, file)
 
