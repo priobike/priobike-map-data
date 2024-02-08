@@ -55,6 +55,13 @@ def save(feature, output):
     output = output + ".geojson"
     output_geojson_path = f"./data/generated/osm/{output}"
     feature.to_file(output_geojson_path, driver='GeoJSON') 
+    
+def save_v2(feature, output):
+    # Add unique IDs to each entry
+    feature['id'] = [output + "-" + str(i) for i in range(0, len(feature))]
+    output = output + "_v2.geojson"
+    output_geojson_path = f"./data/generated/osm/{output}"
+    feature.to_file(output_geojson_path, driver='GeoJSON') 
 
 def get_centroids(feature):
     centroid_geometries = []
@@ -76,16 +83,19 @@ def main():
     bicycle_parking_polygons = read_shp_file("gis_osm_traffic_a_free_1", "parking_bicycle")
     merged_bicycle_parking = merge_points_and_polygons(bicycle_parking_points, bicycle_parking_polygons)
     save(merged_bicycle_parking, "bicycle_parking")
+    save_v2(merged_bicycle_parking, "bicycle_parking")
 
     bicycle_rental_points = read_shp_file("gis_osm_pois_free_1", "bicycle_rental")
     bicycle_rental_polygons = read_shp_file("gis_osm_pois_a_free_1", "bicycle_rental")
     merged_bicycle_rental = merge_points_and_polygons(bicycle_rental_points, bicycle_rental_polygons)
     save(merged_bicycle_rental, "bicycle_rental_original_osm")
+    # V2 is not necessary for this dataset because we only use this in subsequent steps but not in the app
 
     bicycle_shop_points = read_shp_file("gis_osm_pois_free_1", "bicycle_shop")
     bicycle_shop_polygons = read_shp_file("gis_osm_pois_a_free_1", "bicycle_shop")
     merged_bicycle_shop = merge_points_and_polygons(bicycle_shop_points, bicycle_shop_polygons)
     save(merged_bicycle_shop, "bicycle_shop")
+    save_v2(merged_bicycle_shop, "bicycle_shop")
 
     logging.info("Done.")
    

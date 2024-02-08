@@ -175,6 +175,10 @@ def main():
 
     mapped_dataset = map_wfs_to_osm(wfs=wfs_bicycle_points, osm=osm_bicycle_points)
     mapped_dataset.to_file("./data/generated/osm/bicycle_rental.geojson", driver='GeoJSON')
+    
+    # Also save a version where each entry has a unique ID
+    mapped_dataset['id'] = [f"bicycle_rental-{i}" for i in range(0, len(mapped_dataset))]
+    mapped_dataset.to_file("./data/generated/osm/bicycle_rental_v2.geojson", driver='GeoJSON')
 
 if __name__ == "__main__":
     main()
