@@ -24,5 +24,3 @@ COPY --from=builder ./data/accidents/ ./
 COPY --from=builder ./data/generated/accidents/ ./
 COPY --from=builder ./data/generated/osm/ ./
 COPY --from=builder ./data/generated/wfs/ ./
-
-CMD exit 125
