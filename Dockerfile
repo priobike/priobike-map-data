@@ -1,3 +1,5 @@
+ARG ENVIRONMENT=release
+
 FROM python:3.9 AS builder
 
 ARG CACHE_DATE=1970-01-01
@@ -17,7 +19,6 @@ RUN python main.py
 
 RUN rm -r /data/temp
 
-ARG ENVIRONMENT=release
 FROM bikenow.vkw.tu-dresden.de/priobike/priobike-nginx:${ENVIRONMENT} AS runner
 
 WORKDIR /usr/share/nginx/html/
