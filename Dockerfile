@@ -17,9 +17,8 @@ RUN python main.py
 
 RUN rm -r /data/temp
 
-# We cant differentiate between staging (main), beta/production (stable) or release (release) here.
-# Therefore we just use the release tag since it is the most stable one.
-FROM bikenow.vkw.tu-dresden.de/priobike/priobike-nginx:release AS runner
+ARG ENVIRONMENT=release
+FROM bikenow.vkw.tu-dresden.de/priobike/priobike-nginx:${ENVIRONMENT} AS runner
 
 WORKDIR /usr/share/nginx/html/
 COPY --from=builder ./data/accidents/ ./
