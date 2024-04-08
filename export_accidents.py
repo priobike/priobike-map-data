@@ -72,7 +72,7 @@ def process_shp_file_of_year(year):
 
     # see documentation (link in readme), 02 is code for hamburg, 14 for dresden
     logging.info("Selecting features from Hamburg and Dresden.")
-    shp_file = shp_file[shp_file["ULAND"] == "02" | shp_file["ULAND"] == "14"]
+    shp_file = shp_file[shp_file["ULAND"] == "02" or shp_file["ULAND"] == "14"]
     logging.info("Selecting features where bike was involved.")
     shp_file = shp_file[shp_file["IstRad"] !=  "0"]
     logging.info("Convert CRS to EPSG:4326")
