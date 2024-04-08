@@ -1,10 +1,11 @@
-import requests
 import datetime
 import logging
 import zipfile
+
+import pandas as pd
+import requests
 from pyogrio import read_dataframe
 from pyogrio.errors import DataSourceError
-import pandas as pd
 
 MIN_YEAR = 2016
 MAX_YEAR = 2022
@@ -69,6 +70,9 @@ def process_shp_file_of_year(year):
     except DataSourceError:
         raise FileNotFoundError(f"The .shp file with the accident data for the year {year} could not be found. It is very likely that the 'Statistische Ämter' have changed the structure of the .zip files (containing the .shp file) they offer for download. This has already happened in the past. Please compare the structure of the folder `data/temp/{year}` with the given path {shp_file_path} (from get_shp_path({year})). Check the README.md for more information.")
 
+    # see documentation (link in readme), 02 is code for hamburg, 14 for dresden
+    logging.info("Selecting features from Hamburg and Dresden.")
+    shp_file = shp_file[shp_file["ULAND"] == "02" | shp_file["ULAND"] == "14"]
     logging.info("Selecting features where bike was involved.")
     shp_file = shp_file[shp_file["IstRad"] !=  "0"]
     logging.info("Convert CRS to EPSG:4326")
