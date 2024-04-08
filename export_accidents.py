@@ -7,7 +7,7 @@ from pyogrio.errors import DataSourceError
 import pandas as pd
 
 MIN_YEAR = 2016
-MAX_YEAR = datetime.date.today().year
+MAX_YEAR = 2022
 
 def get_geojson_path(year):
     return f"./data/accidents/accidents_{year}.geojson"
