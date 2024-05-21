@@ -2,5 +2,5 @@ fuzzywuzzy==0.18.0
 geopandas==0.13.2
 pandas==2.0.3
 pyogrio==0.6.0
-Requests==2.31.0
+Requests==2.32.0
 Shapely==2.0.1
