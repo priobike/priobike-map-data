@@ -1,91 +1,104 @@
-# priobike-map-data - Download & Generierung von zusätzlichen Karteninformationen im Umkreis Hamburg
+# priobike-map-data
 
-- _Autor_: Markus Wieland
-- _E-Mail_: markus.wieland@mailbox.tu-dresden.de
+The scripts in this repository can be used to download map data relevant for cyclists in Hamburg. This contains bicycle stands, rental stations, repair stations, air pump stations, velo routes, the current traffic density, construction sites, and accident spots. 
 
-Mit diesem Repo werden zusätzliche Karteninformationen für die PrioBike-App heruntergeladen und aufbereitet. Alle durch diese Skripte erzeugten Geodaten sind in dem Koordinatensystem `EPSG:4326` gespeichert.
+For some datasets, additional processing is performed to obtain meaningful data. For example, the accident spots from the Unfallatlas dataset are clustered to find hotspots and warn users.
 
-## Skripte
+To provide this data as map overlays to users of the PrioBike app, it is packaged into a NGINX image which can be deployed as a stateless web service.
+
+[Learn more about PrioBike](https://github.com/priobike)
+
+## Quickstart
+
+The easiest way to run a web service with the processed data is to use the contained `Dockerfile`:
+
+```
+docker build -t priobike-map-data . && docker run -p 80:80 --rm priobike-map-data
+```
+
+## API and CLI
 
 ### `main.py`
 
-Mit diesem Skript werden alle folgenden Skripte in der richtigen Reihenfolge ausgeführt. Alle möglichen Daten werden mit diesem Skript aktualisiert.
+This script executes all the following scripts in the correct order. All possible data is updated with this script.
 
 ### `export_osm_data.py`
 
-Dieses Skript lädt die neusten OpenStreetMap Daten der Stadt Hamburg (angeboten durch [Geofabrik](http://download.geofabrik.de/europe/germany/hamburg-latest-free.shp.zip)) herunter. Diese werden anschließend anhand der Werte des Attributes `fclass` gefiltert und anschließend in einer `geojson`-Datei gespeichert. In diesen Datensätzen werden manche Features als Punktdaten und andere als Polygone gespeichert. Die Datensätze enthalten jedoch unterschiedliche Features.
+This script downloads the latest OpenStreetMap data for the city of Hamburg (provided by [Geofabrik](http://download.geofabrik.de/europe/germany/hamburg-latest-free.shp.zip)). These are then filtered based on the values of the `fclass` attribute and saved in a `geojson` file. In these datasets, some features are stored as point data and others as polygons. The datasets contain different features.
 
-- Fahrradständer (Punktdaten): `gis_osm_traffic_free_1.shp` → `bicycle_parking.geojson` (`fclass=parking_bicycle`)
-- Fahrradständer (Polygondaten): `gis_osm_traffic_a_free_1.shp` → `bicycle_parking_polygon.geojson` (`fclass=parking_bicycle`)
-- Fahrradleihstationen (Punktdaten): `gis_osm_pois_free_1` → `bicycle_rental` (`fclass=bicycle_rental`)
-- Fahrradleihstationen (Polygondaten): `gis_osm_pois_a_free_1` → `bicycle_rental` (`fclass=bicycle_rental_polygon`)
-- Fahrradläden/Werkstätten (Punktdaten): `gis_osm_pois_free_1` → `bicycle_shop` (`fclass=bicycle_shop`)
-- Fahrradläden/Werkstätten (Polygondaten): `gis_osm_pois_a_free_1` → `bicycle_shop` (`fclass=bicycle_shop_polygon`)
+- Bicycle stands (point data): `gis_osm_traffic_free_1.shp` → `bicycle_parking.geojson` (`fclass=parking_bicycle`)
+- Bicycle stands (polygon data): `gis_osm_traffic_a_free_1.shp` → `bicycle_parking_polygon.geojson` (`fclass=parking_bicycle`)
+- Bicycle rental stations (point data): `gis_osm_pois_free_1` → `bicycle_rental` (`fclass=bicycle_rental`)
+- Bicycle rental stations (polygon data): `gis_osm_pois_a_free_1` → `bicycle_rental_polygon` (`fclass=bicycle_rental`)
+- Bicycle shops/workshops (point data): `gis_osm_pois_free_1` → `bicycle_shop` (`fclass=bicycle_shop`)
+- Bicycle shops/workshops (polygon data): `gis_osm_pois_a_free_1` → `bicycle_shop_polygon` (`fclass=bicycle_shop`)
 
 ### `export_wfs_data.py`
 
-Dieses Skript lädt Daten aus verschiedenen Web Feature Services ([WFS](https://en.wikipedia.org/wiki/Web_Feature_Service)) der Stadt Hamburg herunter und speichert diese in einer `geojson`-Datei. Folgende WFS werden verwendet:
+This script downloads data from various Web Feature Services ([WFS](https://en.wikipedia.org/wiki/Web_Feature_Service)) of the city of Hamburg and saves them in a `geojson` file. The following WFS are used:
 
 #### 1. HH_WFS_Bike_und_Ride (`data/generated/wfs/bike_and_ride.geojson`)
 
-Der Datensatz enthält die Lage der Fahrradabstellanlagen an Schnellbahnhaltestellen im Hamburger Stadtgebiet. Für jede Abstellanlage wird die Anzahl der öffentlichen Stellplätze (überdacht und nicht überdacht) und, wenn vorhanden, die Anzahl der abschließbaren Mietplätze angegeben. Mehr Details siehe [hier](https://metaver.de/trefferanzeige?docuuid=337AA4A2-72EF-4AE0-A8F6-D35B243532DC). [Lizenz](https://www.govdata.de/dl-de/by-2-0). [Quelle](https://geodienste.hamburg.de/HH_WFS_Bike_und_Ride?SERVICE=WFS&REQUEST=GetFeature&outputFormat=application/geo%2Bjson&version=2.0.0&typeName=de.hh.up:bike_und_ride&srsname=EPSG:4326).
+The dataset contains the location of bicycle parking facilities at rapid transit stations in the Hamburg metropolitan area. For each facility, the number of public parking spaces (covered and uncovered) and, if available, the number of lockable rental spaces are provided. More details [here](https://metaver.de/trefferanzeige?docuuid=337AA4A2-72EF-4AE0-A8F6-D35B243532DC). [License](https://www.govdata.de/dl-de/by-2-0). [Source](https://geodienste.hamburg.de/HH_WFS_Bike_und_Ride?SERVICE=WFS&REQUEST=GetFeature&outputFormat=application/geo%2Bjson&version=2.0.0&typeName=de.hh.up:bike_und_ride&srsname=EPSG:4326).
 
 #### 2. HH_WFS_Verkehrslage (`data/generated/wfs/traffic.geojson`)
 
-Der Datensatz enthält die Verkehrslage in Echtzeit (Aktualisierung alle 5 Minuten) auf dem Hamburger Straßennetz und auf größeren Straßen im direkten Hamburger Umland sowie auf den durch Hamburg verlaufenden Autobahnen südlich bis Lüneburg, Hannover und Bremen und nördlich bis Itzehoe, Flensburg und Lübeck.
+The dataset contains real-time traffic conditions (updated every 5 minutes) on the Hamburg road network and major roads in the immediate vicinity of Hamburg, as well as on highways running through Hamburg south to Lüneburg, Hannover, and Bremen, and north to Itzehoe, Flensburg, and Lübeck.
 
-Die Verkehrslage ist in 4 Zustandsklassen eingeteilt, von Zustandsklasse 1, fließender Verkehr (grün) über Zustandsklasse 2, dichter Verkehr (orange) und Zustandsklasse 3, zäher Verkehr (rot) bis Zustandsklasse 4, gestauter Verkehr (dunkelrot).
-Liegen für einzelne Segmente dauerhaft oder zeitweise keine Daten vor, wird keine Verkehrslage angezeigt. Mehr Details siehe [hier](https://metaver.de/trefferanzeige?docuuid=22E00411-7932-47A6-B2DA-26F6E3E22B5E). [Lizenz](https://www.govdata.de/dl-de/by-2-0). [Quelle](`https://geodienste.hamburg.de/HH_WFS_Verkehrslage?SERVICE=WFS&REQUEST=GetFeature&typeName=de.hh.up:verkehrslage&version=2.0.0&OUTPUTFORMAT=application/geo%2Bjson&srsname=EPSG:4326`).
+Traffic conditions are classified into four states, from state class 1, free-flowing traffic (green) to state class 4, congested traffic (dark red). If no data is available for individual segments, no traffic condition is displayed. More details [here](https://metaver.de/trefferanzeige?docuuid=22E00411-7932-47A6-B2DA-26F6E3E22B5E). [License](https://www.govdata.de/dl-de/by-2-0). [Source](https://geodienste.hamburg.de/HH_WFS_Verkehrslage?SERVICE=WFS&REQUEST=GetFeature&typeName=de.hh.up:verkehrslage&version=2.0.0&OUTPUTFORMAT=application/geo%2Bjson&srsname=EPSG:4326).
 
 #### 3. HH_WFS_Baustellen (`data/generated/wfs/construction_sites.geojson`)
 
-Baustellen auf Hauptverkehrs- und Bundesfernstraßen Hamburg. Mehr Details siehe [hier](https://www.govdata.de/suchen/-/details/baustellen-auf-hauptverkehrs-und-bundesfernstrassen-hamburg). [Lizenz](https://www.govdata.de/dl-de/by-2-0). [Quelle](https://geodienste.hamburg.de/HH_WFS_Baustellen?SERVICE=WFS&REQUEST=GetFeature&typeName=de.hh.up:tns_steckbrief_visualisierung&version=2.0.0&OUTPUTFORMAT=application/geo%2Bjson&srsname=EPSG:4326).
+Construction sites on major roads and federal highways in Hamburg. More details [here](https://www.govdata.de/suchen/-/details/baustellen-auf-hauptverkehrs-und-bundesfernstrassen-hamburg). [License](https://www.govdata.de/dl-de/by-2-0). [Source](https://geodienste.hamburg.de/HH_WFS_Baustellen?SERVICE=WFS&REQUEST=GetFeature&typeName=de.hh.up:tns_steckbrief_visualisierung&version=2.0.0&OUTPUTFORMAT=application/geo%2Bjson&srsname=EPSG:4326).
 
 #### 4. HH_WFS_Stadtrad (`data/generated/wfs/stadt_rad.geojson`)
 
-Der Datensatz enthält die Position aller StadtRAD-Stationen im Hamburger Stadtgebiet und die Anzahl der aktuell zur Ausleihe zur Verfügung stehenden Fahrräder und Lastenpedelecs. Mehr Details siehe [hier](https://metaver.de/trefferanzeige?docuuid=D18F375E-FA5F-4998-AFF8-557969F44479). [Lizenz](https://www.govdata.de/dl-de/by-2-0). [Quelle](https://geodienste.hamburg.de/HH_WFS_Stadtrad?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&typename=de.hh.up:stadtrad_stationen&outputFormat=application/geo%2bjson&srsname=EPSG:4326).
+The dataset contains the position of all StadtRAD stations in the Hamburg metropolitan area and the number of bicycles and cargo pedelecs currently available for rent. More details [here](https://metaver.de/trefferanzeige?docuuid=D18F375E-FA5F-4998-AFF8-557969F44479). [License](https://www.govdata.de/dl-de/by-2-0). [Source](https://geodienste.hamburg.de/HH_WFS_Stadtrad?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&typename=de.hh.up:stadtrad_stationen&outputFormat=application/geo%2bjson&srsname=EPSG:4326).
 
 #### 5. HH_WFS_Fahrradluftstationen (`data/generated/wfs/bike_air_station.geojson`)
 
-[Lizenz](https://www.govdata.de/dl-de/by-2-0). [Quelle](https://geodienste.hamburg.de/HH_WFS_Fahrradluftstationen?SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature&typename=de.hh.up:fahrradluftstationen&OUTPUTFORMAT=application/geo%2Bjson&srsname=EPSG:4326).
+[License](https://www.govdata.de/dl-de/by-2-0). [Source](https://geodienste.hamburg.de/HH_WFS_Fahrradluftstationen?SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature&typename=de.hh.up:fahrradluftstationen&OUTPUTFORMAT=application/geo%2Bjson&srsname=EPSG:4326).
 
 #### 6. HH_WFS_ITS_Dienste_Hamburg (`data/generated/wfs/static_green_waves.geojson`)
 
-Statische grüne Wellen in Hamburg. Mehr Details siehe [hier](https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=A1ADDD06-FAF3-42B7-8C32-E430EAD67E9F&plugid=/ingrid-group:ige-iplug-hmdk.metaver). [Lizenz](https://www.govdata.de/dl-de/by-2-0). [Quelle](https://geodienste.hamburg.de/HH_WFS_ITS_Dienste_Hamburg?SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature&typeName=de.hh.up:its_iot_registry&OUTPUTFORMAT=application/geo%2Bjson&srsname=EPSG:4326&Filter=%3Cogc:Filter%20xmlns:ogc=%22http://www.opengis.net/ogc%22%3E%3Cogc:PropertyIsEqualTo%3E%3Cogc:PropertyName%3Epurpose_id%3C/ogc:PropertyName%3E%3Cogc:Literal%3E14%3C/ogc:Literal%3E%3C/ogc:PropertyIsEqualTo%3E%3C/ogc:Filter%3E).
+Static green waves in Hamburg. More details [here](https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=A1ADDD06-FAF3-42B7-8C32-E430EAD67E9F&plugid=/ingrid-group:ige-iplug-hmdk.metaver). [License](https://www.govdata.de/dl-de/by-2-0). [Source](https://geodienste.hamburg.de/HH_WFS_ITS_Dienste_Hamburg?SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature&typeName=de.hh.up:its_iot_registry&OUTPUTFORMAT=application/geo%2Bjson&srsname=EPSG:4326&Filter=%3Cogc:Filter%20xmlns:ogc=%22http://www.opengis.net/ogc%22%3E%3Cogc:PropertyIsEqualTo%3E%3Cogc:PropertyName%3Epurpose_id%3C/ogc:PropertyName%3E%3Cogc:Literal%3E14%3C/ogc:Literal%3E%3C/ogc:PropertyIsEqualTo%3E%3C/ogc:Filter%3E).
 
 #### 7. HH_WFS_ITS_Dienste_Hamburg (`data/generated/wfs/prio_change.geojson`)
 
-Mehr Details siehe [hier](https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=A1ADDD06-FAF3-42B7-8C32-E430EAD67E9F&plugid=/ingrid-group:ige-iplug-hmdk.metaver). [Lizenz](https://www.govdata.de/dl-de/by-2-0). [Quelle](https://geodienste.hamburg.de/HH_WFS_ITS_Dienste_Hamburg?SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature&typeName=de.hh.up:its_iot_registry&OUTPUTFORMAT=application/geo%2Bjson&srsname=EPSG:4326&Filter=%3Cogc:Filter%20xmlns:ogc=%22http://www.opengis.net/ogc%22%3E%3Cogc:PropertyIsEqualTo%3E%3Cogc:PropertyName%3Epurpose_id%3C/ogc:PropertyName%3E%3Cogc:Literal%3E15%3C/ogc:Literal%3E%3C/ogc:PropertyIsEqualTo%3E%3C/ogc:Filter%3E).
+More details [here](https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=A1ADDD06-FAF3-42B7-8C32-E430EAD67E9F&plugid=/ingrid-group:ige-iplug-hmdk.metaver). [License](https://www.govdata.de/dl-de/by-2-0). [Source](https://geodienste.hamburg.de/HH_WFS_ITS_Dienste_Hamburg?SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature&typeName=de.hh.up:its_iot_registry&OUTPUTFORMAT=application/geo%2Bjson&srsname=EPSG:4326&Filter=%3Cogc:Filter%20xmlns:ogc=%22http://www.opengis.net/ogc%22%3E%3Cogc:PropertyIsEqualTo%3E%3Cogc:PropertyName%3Epurpose_id%3C/ogc:PropertyName%3E%3Cogc:Literal%3E15%3C/ogc:Literal%3E%3C/ogc:PropertyIsEqualTo%3E%3C/ogc:Filter%3E).
 
 #### 8. HH_WFS_Velorouten (`data/generated/wfs/velo_routes.geojson`)
 
-Der Datensatz enthält das Netz der 14 Velorouten für den Alltagsradverkehr (ca. 280 km) in Hamburg. Die Velorouten verbinden die City mit wichtigen Alltagszielen wie den Wohngebieten der inneren und äußeren Stadt, Stadtteilzentren und Arbeitsplatzschwerpunkten. Mehr Details siehe [hier](https://metaver.de/trefferanzeige?docuuid=8254E244-7DD3-401D-AA15-4CDE78D4E91F).
-[Lizenz](https://www.govdata.de/dl-de/by-2-0). [Quelle](https://geodienste.hamburg.de/HH_WFS_Velorouten?SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature&OUTPUTFORMAT=application/geo%2Bjson&srsname=EPSG:4326&typename=de.hh.up:velorouten).
+The dataset contains the network of the
 
-### `merge_bicycle_rental.py`
+ Hamburg veloroutes. More details [here](https://metaver.de/trefferanzeige?docuuid=5DBD9327-EAB3-4B60-AE8A-7A8B57D84D7F). [License](https://www.govdata.de/dl-de/by-2-0). [Source](https://geodienste.hamburg.de/HH_WFS_Velorouten?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&typename=de.hh.up:velorouten&outputFormat=application/geo%2Bjson&srsname=EPSG:4326).
 
-**Anmerkung**: Benötigt die OSM und WFS, welche von `export_osm_data.py` und `export_wfs_data.py` heruntergeladen werden. Die Download-Skripte sollten vor der Ausführung dieses Skripts ausgeführt werden.
+### `filter_routing_data.py`
 
-Die OSM-Daten zu Fahrradleihstation (`data/generated/osm/bicycle_rental.geojson`) enthält fast alle Fahrradleihstationen aus dem StadtRAD-Datensatz der Stadt Hamburg (`data/generated/wfs/stadt_rad.geojson`) + einige weitere.
+This script downloads the routing data for the city of Hamburg (provided by [Geofabrik](http://download.geofabrik.de/europe/germany/hamburg-latest-free.shp.zip)) and filters it based on the value of the `fclass` attribute. The remaining data is saved in a `geojson` file and used for routing.
 
-![Übersicht](./assets/stadtrad_osm.png)
+- Streets (line data): `gis_osm_roads_free_1.shp` → `streets.geojson`
+- Paths (line data): `gis_osm_roads_free_1.shp` → `paths.geojson`
 
-Damit die Stationen nicht doppelt angezeigt werden, versucht das Skript diese beiden Dateien zu vereinigen. Das geschieht über das `name`-Attribute, welches sowohl in den OSM-Daten als auch in den WFS-Daten vorkommt. Durch die "Natur" von OSM sind jedoch nicht alle Namen perfekt übereinstimmend (fehlende Leerzeichen, "U-Bahn" statt "U", Tippfehler etc.). Im September 2023 können 272 von 306 StadtRAD-Stationen perfekt gematched werden. Die restlichen ~10% werden versucht per Levenshtein-Distanz und anschließend per örtlicher Nähe zu mappen. Übrig bleiben 6 Stationen, welche keinen OSM-Eintrag besitzen. Das liegt vermutlich an der Aktualität der OSM-Daten. Diese verbleibenden Daten werden dem OSM-Datensatz hinzugefügt. Zum Schluss wird der vereinigte Datensatz in `data/generated/osm/bicycle_rental.geojson` gespeichert.
+### `reverse_geocoding.py`
 
-### `generate_accident_hot_spots.py`
+This script contains methods to perform reverse geocoding using OpenStreetMap data.
 
-Dokumentation der Daten: [Dokumentation](https://www.opengeodata.nrw.de/produkte/transport_verkehr/unfallatlas/DSB_Unfallatlas.pdf)
+## What else to know
 
-**Anmerkung**: Benötigt die Unfalldaten, welche von `export_accidents.py` heruntergeladen werden. Außerdem werden die OSM-Daten der Geofabrik benötigt, welche in `export_osm_data.py` heruntergeladen werden (die `.shp` Dateien, nicht die erzeugten GeoJSONs). Die Download-Skripte sollten vor der Ausführung dieses Skripts ausgeführt werden.
+- All geodata generated by these scripts is stored in the `EPSG:4326` coordinate system.
+- The `main.py` script should be used to execute all scripts in the correct order to update all data.
+- Ensure the required Python libraries are installed to avoid any issues during execution.
+- The generated `geojson` files contain valuable geographical information for the PrioBike app and are saved in the `EPSG:4326` coordinate system.
 
-**Anmerkung**: Die Unfalldaten stammen vom [Unfallatlas des Statisportal](https://unfallatlas.statistikportal.de/) und werden als `.zip`-Datei heruntergeladen. Die Struktur dieser Dateien schwankt jedoch sehr.
+## Contributing
 
-- 2016: `/Shapefile/Unfaelle_2016_LineRef.shp`
-- 2017 - 2020: `/Shape/Unfallorte<jahr>_LinRef.shp` (hier fehlt ein Unterstrich)
-- ab 2021: `/shp/Unfallorte<jahr>_LineRef.shp`
+We highly encourage you to open an issue or a pull request. You can also use our repository freely with the `MIT` license.
 
-Es ist daher möglich, dass dieses Programm nicht mehr richtig funktioniert, wenn neue Unfalldaten veröffentlicht werden. Weiterhin halte ich es für möglich, dass die Struktur der Dateien in Zukunft retrospektivisch angepasst wird. Der Pfad für die Unfalldaten wird in der Datei `export_accidents.py` mit der Funktion `get_shape_path(year)` generiert. Die Unfalldaten stehen theoretisch auch als `.csv` Dateien zur Verfügung. Die Struktur bei diesen `.zip`-Dateien ist jedoch nochmal bedeutend schlimmer.
+Every service runs through testing before it is deployed in our release setup. Read more in our [PrioBike deployment readme](https://github.com/priobike/.github/blob/main/wiki/deployment.md) to understand how specific branches/tags are deployed.
 
-**Anmerkung**: Es kann nicht genau gesagt werden, ab wann Unfalldaten für das aktuelle Jahr vorhanden sind. Um diese Möglichkeit nicht auszuschließen wird dennoch versucht die Daten für das aktuelle Jahr herunterzuladen. Daher kann es vorkommen, dass der Download der Daten für das aktuelle Jahr fehlschlägt. Da die Daten auch erst nach Beginn des nächsten Jahres veröffentlicht werden können, kann auch der Download von zwei Jahren fehlschlagen.
+Additional credit goes to our external contributors: [SoWieMarkus](https://github.com/SoWieMarkus)
 
-In diesem Skript werden die heruntergeladenen Unfalldaten aus dem [Unfallatlas des Statisportal](https://unfallatlas.statistikportal.de/) ([Lizenz](https://www.govdata.de/dl-de/by-2-0)) genutzt um Unfallschwerpunkte in der Stadt Hamburg ausfindig zu machen. Dafür werden zusätzlich die Straßen-Daten von OpenStreetMap und ein Umrandungspolygon der Stadt Hamburg benötigt ([Quelle](http://opendatalab.de/projects/geojson-utilities/)). Die Unfälle werden geclustert und anschließend bewertet. (Dichte der Unfälle, Straßenart (Schnellstraße → mehr Autos), Anzahl der Unfälle, Schwere der Unfälle). Am Ende werden die `30` Unfallschwerpunkte mit dem höchsten Score in `data/generated/accidents/accident_hotspots.geojson` gespeichert.
+## Anything unclear?
+
+Help us improve this documentation. If you have any problems or unclarities, feel free to open an issue.
