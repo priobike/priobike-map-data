@@ -8,4 +8,4 @@ Shapely==2.0.1
 # Since numpy 2.0.0 is not yet supported by geopandas see: https://stackoverflow.com/questions/78634235/numpy-dtype-size-changed-may-indicate-binary-incompatibility-expected-96-from
 numpy==1.26.4
 # Pinning fiona to the most recent fiona 1 version because geopandas would set it to the newest version otherwise
-fiona==1.9.6
+fiona==1.10.0
